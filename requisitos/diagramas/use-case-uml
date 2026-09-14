@@ -1,0 +1,48 @@
+@startuml
+
+left to right direction
+
+actor Administrador
+
+rectangle "Sistema de Inventário e Controle de Equipamentos" {
+
+    usecase "Consultar\ninventário" as UC01
+    usecase "Cadastrar\nequipamento" as UC02
+    usecase "Consultar\nequipamento" as UC03
+    usecase "Editar\nequipamento" as UC04
+
+    usecase "Gerenciar\ncategorias" as UC05
+    usecase "Gerenciar\nlocalizações" as UC06
+
+    usecase "Alterar estado\ndo equipamento" as UC07
+
+    usecase "Movimentar\nequipamento" as UC08
+    usecase "Atualizar\nlocalização" as UC09
+    usecase "Registrar histórico\nde movimentação" as UC10
+    usecase "Consultar histórico\nde movimentações" as UC11
+
+    usecase "Registrar\nmanutenção" as UC12
+    usecase "Atualizar\nmanutenção" as UC13
+    usecase "Consultar histórico\nde manutenções" as UC14
+
+    usecase "Registrar\nbaixa" as UC15
+}
+
+Administrador --> UC01
+Administrador --> UC02
+Administrador --> UC03
+Administrador --> UC04
+Administrador --> UC05
+Administrador --> UC06
+Administrador --> UC07
+Administrador --> UC08
+Administrador --> UC11
+Administrador --> UC12
+Administrador --> UC13
+Administrador --> UC14
+Administrador --> UC15
+
+UC08 ..> UC09 : <<include>>
+UC08 ..> UC10 : <<include>>
+
+@enduml
