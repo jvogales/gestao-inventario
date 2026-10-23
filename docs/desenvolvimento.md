@@ -37,6 +37,12 @@ java -jar target/gestao-inventario-0.0.1-SNAPSHOT.jar
 No Windows, substitua `./mvnw` por `.\mvnw.cmd`. No IntelliJ, Eclipse ou VS Code,
 abra a pasta como projeto Maven e selecione o JDK 17 ou superior.
 
+No NetBeans, use **Run Project** para iniciar `InventarioApplication`.
+O `pom.xml` define `start-class`, usada pela ação Run da IDE.
+**Clean and Build** compila e testa, mas não mantém o servidor ligado.
+Se um clone antigo apresentar `ClassNotFoundException: ${start-class}`,
+atualize com `git pull` e recarregue o projeto Maven antes de executar novamente.
+
 As entidades usam Lombok (`@Data` e anotações de construtores). Se a IDE marcar
 os métodos gerados como ausentes, habilite o processamento de anotações e o
 suporte a Lombok da IDE; o build pelo Wrapper já processa as anotações.
