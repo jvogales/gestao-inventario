@@ -2,7 +2,7 @@
 
 Sistema web para gerenciar equipamentos, localizações e o histórico de movimentações e manutenções. Projeto da disciplina de **Programação Orientada a Objetos II**.
 
-> **Em desenvolvimento:** a base Spring Boot e as entidades iniciais (`Equipamento`, `Categoria` e `Localizacao`) estão implementadas. Telas, serviços e persistência serão desenvolvidos nas próximas etapas.
+> **Em desenvolvimento:** CRUD REST em memória para equipamentos, categorias e localizações. Entidades usam Lombok. Telas, históricos e persistência JDBC serão desenvolvidos nas próximas etapas.
 
 ## Tecnologias
 
@@ -63,6 +63,7 @@ gestao-inventario/
 ## Documentação
 
 - [Guia de desenvolvimento](docs/desenvolvimento.md): JDK, IDE, execução e estrutura de pacotes.
+- [API REST e exemplos para Postman](docs/api.md): rotas, JSON e respostas HTTP.
 - [Requisitos funcionais e não funcionais](docs/requisitos/requisitos.md).
 - [Diagramas e modelagem](docs/README.md).
 - [Modelo de domínio e decisões de implementação](docs/modelo-dominio.md).

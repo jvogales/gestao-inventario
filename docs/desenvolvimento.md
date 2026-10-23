@@ -37,6 +37,10 @@ java -jar target/gestao-inventario-0.0.1-SNAPSHOT.jar
 No Windows, substitua `./mvnw` por `.\mvnw.cmd`. No IntelliJ, Eclipse ou VS Code,
 abra a pasta como projeto Maven e selecione o JDK 17 ou superior.
 
+As entidades usam Lombok (`@Data` e anotações de construtores). Se a IDE marcar
+os métodos gerados como ausentes, habilite o processamento de anotações e o
+suporte a Lombok da IDE; o build pelo Wrapper já processa as anotações.
+
 O Wrapper instala Maven, mas não instala Java. Em computadores da universidade
 com instalação restrita, use um JDK autorizado pela instituição ou execute o
 projeto no ambiente em nuvem. Não é necessário copiar a pasta `target` entre máquinas.
@@ -59,7 +63,8 @@ src/main/resources/
 └── static/           # CSS, JavaScript e imagens
 ```
 
-Os pacotes estão documentados com `package-info.java`. `Equipamento`, `Categoria`,
+Controllers, services e repositories implementam o CRUD em memória descrito
+no [guia da API](api.md). Os pacotes estão documentados com `package-info.java`. `Equipamento`, `Categoria`,
 `Localizacao` e `EstadoEquipamento` formam o modelo inicial; veja as
 [decisões de implementação](modelo-dominio.md). Spring Web, Thymeleaf, Validation, Actuator e suporte a testes já estão
 declarados no `pom.xml`. Somente o endpoint de saúde do Actuator está exposto.
