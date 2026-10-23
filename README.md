@@ -1,108 +1,78 @@
-# Sistema de Inventário e Controle de Equipamentos
+# Gestão de Inventário
 
-Projeto desenvolvido para a disciplina de **Programação Orientada a Objetos II**.
+Sistema web para gerenciar equipamentos, localizações e o histórico de movimentações e manutenções. Projeto da disciplina de **Programação Orientada a Objetos II**.
 
-O objetivo do sistema é facilitar o gerenciamento de equipamentos de uma organização, permitindo o cadastro, consulta, movimentação, manutenção e controle da situação atual dos ativos.
-
-## Funcionalidades previstas
-
-- Cadastro de equipamentos;
-- listagem e pesquisa de equipamentos;
-- gerenciamento de categorias;
-- gerenciamento de localizações;
-- controle do estado dos equipamentos;
-- registro de movimentações;
-- histórico de movimentações;
-- registro de manutenções;
-- histórico de manutenções;
-- baixa de equipamentos.
+> **Em desenvolvimento:** a base Spring Boot está executável. As entidades, telas e regras de negócio ainda serão implementadas.
 
 ## Tecnologias
 
-- Java
-- Spring Boot
-- HTML
-- CSS
-- Thymeleaf
-- PostgreSQL
-- JDBC
-- Maven
-- Git e GitHub
+| Componente | Tecnologia |
+| --- | --- |
+| Linguagem | Java 17 ou superior |
+| Backend | Spring Boot 3.5 / Spring MVC |
+| Interface prevista | Thymeleaf, HTML e CSS |
+| Build | Maven 3.9.11 via Wrapper |
+| Persistência prevista | PostgreSQL com JDBC |
 
-## Documentação
+## Executar
 
-- [Requisitos Funcionais e Não Funcionais](requisitos/requisitos.md)
+Instale um **JDK 17 ou superior**. O Maven Wrapper baixa o Maven automaticamente; PostgreSQL ainda não é necessário.
 
-## Status do projeto
+```bash
+git clone https://github.com/jvogales/gestao-inventario.git
+cd gestao-inventario
+```
 
-Base Spring Boot preparada. As entidades e regras de negócio serão implementadas incrementalmente.
-
-## Executar em qualquer máquina
-
-Pré-requisitos: **JDK 17 ou superior** (não apenas JRE), Git e acesso à internet
-para o primeiro download das dependências. Não precisa instalar Maven nem configurar
-PostgreSQL nesta etapa. A versão do Maven é definida pelo Wrapper do projeto.
-
-Clone o repositório e entre na pasta `gestao-inventario`. Se já tiver um clone,
-atualize-o preservando suas alterações locais.
-
-Confira `java -version` e `javac -version`. Se houver erro, instale um JDK e
-configure `JAVA_HOME` para a pasta dele, com seu diretório `bin` no `PATH`.
-
-Linux/macOS:
+**Linux / macOS**
 
 ```bash
 ./mvnw spring-boot:run
 ```
 
-Windows (PowerShell):
+**Windows / PowerShell**
 
 ```powershell
 .\mvnw.cmd spring-boot:run
 ```
 
-No computador onde executar, acesse `http://localhost:8080/actuator/health`.
-A resposta esperada é `{"status":"UP"}`. A raiz `/` ainda não tem tela e retorna
-404. Encerre o servidor com `Ctrl+C`. Para outra porta, configure a variável `PORT`.
+Verifique `http://localhost:8080/actuator/health`: a resposta esperada é `{"status":"UP"}`. A rota `/` ainda não possui tela. Encerre com `Ctrl+C`.
 
-Compilar, executar o teste de inicialização HTTP e gerar o JAR:
+## Testar e gerar o JAR
 
 ```bash
 ./mvnw clean verify
-java -jar target/gestao-inventario-0.0.1-SNAPSHOT.jar
 ```
 
-No Windows, substitua `./mvnw` por `.\mvnw.cmd`. No IntelliJ, Eclipse ou VS Code,
-abra a pasta como projeto Maven e selecione o JDK 17 ou superior.
+No Windows, use `.\mvnw.cmd clean verify`. O comando executa o teste de inicialização HTTP e gera o JAR em `target/`.
 
-O Wrapper instala Maven, mas não instala Java. Em computadores da universidade
-com instalação restrita, use um JDK autorizado pela instituição ou execute o
-projeto no ambiente em nuvem. Não é necessário copiar a pasta `target` entre máquinas.
-Para compartilhar mudanças, faça commit e push no GitHub e atualize o clone na outra máquina.
-
-## Estrutura inicial
+## Organização
 
 ```text
-src/main/java/com/jvogales/inventario/
-├── InventarioApplication.java
-├── controller/       # Requisições e respostas HTTP
-├── service/          # Regras de negócio
-├── repository/       # Acesso a dados (futuramente JDBC)
-└── model/
-    ├── entity/       # Equipamento, Categoria, Localizacao etc.
-    └── enums/        # Estados e tipos do domínio
-src/main/resources/
-├── application.properties
-├── templates/        # Futuras páginas Thymeleaf
-└── static/           # CSS, JavaScript e imagens
+gestao-inventario/
+├── .github/workflows/  # Validação automática no GitHub
+├── .mvn/wrapper/       # Configuração do Maven Wrapper
+├── docs/               # Requisitos, diagramas e guias
+├── src/
+│   ├── main/java/      # Aplicação e camadas do sistema
+│   ├── main/resources/ # Configurações e futuros arquivos da interface
+│   └── test/java/      # Testes automatizados
+├── mvnw / mvnw.cmd     # Comandos Maven para Linux/macOS e Windows
+└── pom.xml             # Dependências e configuração do build
 ```
 
-Os pacotes estão documentados com `package-info.java`; as entidades ainda serão
-criadas. Spring Web, Thymeleaf, Validation, Actuator e suporte a testes já estão
-declarados no `pom.xml`. Somente o endpoint de saúde do Actuator está exposto.
-JDBC e o driver PostgreSQL serão adicionados junto com a configuração de persistência,
-para manter esta base executável sem banco e sem credenciais no repositório.
+## Documentação
+
+- [Guia de desenvolvimento](docs/desenvolvimento.md): JDK, IDE, execução e estrutura de pacotes.
+- [Requisitos funcionais e não funcionais](docs/requisitos/requisitos.md).
+- [Diagramas e modelagem](docs/README.md).
+- [Definição inicial do projeto (PDF)](docs/definicao-projeto.pdf).
+
+## Escopo previsto
+
+- Cadastro e consulta de equipamentos, categorias e localizações.
+- Controle do estado e baixa dos equipamentos.
+- Registro e histórico de movimentações e manutenções.
 
 ## Autor
 
-João Vitor Orlandini Gales
+[João Vitor Orlandini Gales](https://github.com/jvogales)

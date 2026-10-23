@@ -1,13 +1,27 @@
-/target/
+# Build Java / Maven
+target/
+*.class
+
+# Configurações locais de IDEs
 .idea/
 *.iml
 .classpath
 .project
 .settings/
 .vscode/
+nbproject/private/
+
+# Variáveis locais e credenciais
 .env
 .env.*
 !.env.example
+
+# Logs e arquivos temporários
 *.log
+*.tmp
+*.swp
+*~
+
+# Sistema operacional
 .DS_Store
 Thumbs.db
