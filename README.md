@@ -2,7 +2,7 @@
 
 Sistema web para gerenciar equipamentos, localizações e o histórico de movimentações e manutenções. Projeto da disciplina de **Programação Orientada a Objetos II**.
 
-> **Em desenvolvimento:** a base Spring Boot está executável. As entidades, telas e regras de negócio ainda serão implementadas.
+> **Em desenvolvimento:** a base Spring Boot e as entidades iniciais (`Equipamento`, `Categoria` e `Localizacao`) estão implementadas. Telas, serviços e persistência serão desenvolvidos nas próximas etapas.
 
 ## Tecnologias
 
@@ -65,6 +65,7 @@ gestao-inventario/
 - [Guia de desenvolvimento](docs/desenvolvimento.md): JDK, IDE, execução e estrutura de pacotes.
 - [Requisitos funcionais e não funcionais](docs/requisitos/requisitos.md).
 - [Diagramas e modelagem](docs/README.md).
+- [Modelo de domínio e decisões de implementação](docs/modelo-dominio.md).
 - [Definição inicial do projeto (PDF)](docs/definicao-projeto.pdf).
 
 ## Escopo previsto

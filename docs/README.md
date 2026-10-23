@@ -5,6 +5,7 @@
 - [Definição inicial do projeto (PDF)](definicao-projeto.pdf)
 - [Requisitos funcionais e não funcionais](requisitos/requisitos.md)
 - [Guia de desenvolvimento](desenvolvimento.md)
+- [Modelo de domínio e decisões de implementação](modelo-dominio.md)
 
 ## Modelagem
 

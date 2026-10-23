@@ -59,8 +59,9 @@ src/main/resources/
 └── static/           # CSS, JavaScript e imagens
 ```
 
-Os pacotes estão documentados com `package-info.java`; as entidades ainda serão
-criadas. Spring Web, Thymeleaf, Validation, Actuator e suporte a testes já estão
+Os pacotes estão documentados com `package-info.java`. `Equipamento`, `Categoria`,
+`Localizacao` e `EstadoEquipamento` formam o modelo inicial; veja as
+[decisões de implementação](modelo-dominio.md). Spring Web, Thymeleaf, Validation, Actuator e suporte a testes já estão
 declarados no `pom.xml`. Somente o endpoint de saúde do Actuator está exposto.
 JDBC e o driver PostgreSQL serão adicionados junto com a configuração de persistência,
 para manter esta base executável sem banco e sem credenciais no repositório.
