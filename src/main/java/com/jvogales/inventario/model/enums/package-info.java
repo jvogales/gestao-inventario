@@ -1,0 +1,4 @@
+/**
+ * Enumerações do domínio do inventário.
+ */
+package com.jvogales.inventario.model.enums;
