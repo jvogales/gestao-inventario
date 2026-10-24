@@ -1,5 +1,7 @@
 # Documentação do projeto
 
+- [Ponto de retomada: integração local com PostgreSQL](retomada.md)
+
 ## Planejamento
 
 - [Definição inicial do projeto (PDF)](definicao-projeto.pdf)
