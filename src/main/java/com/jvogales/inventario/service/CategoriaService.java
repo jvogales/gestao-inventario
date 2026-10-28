@@ -33,9 +33,19 @@ public class CategoriaService {
 
     public Categoria atualizar(Long id, Categoria dados) {
         var existente = buscarPorId(id);
+
         existente.setNome(dados.getNome());
         existente.setDescricao(dados.getDescricao());
-        return repository.salvar(existente);
+
+        var atualizada = repository.salvar(existente);
+
+        // Sincronização temporária enquanto EquipamentoRepository
+        // ainda utiliza armazenamento em memória.
+        equipamentoRepository.listar().stream()
+            .filter(e -> e.getCategoria().getId().equals(id))
+            .forEach(e -> e.setCategoria(atualizada));
+
+        return atualizada;
     }
 
     public void excluir(Long id) {
