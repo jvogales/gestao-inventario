@@ -4,6 +4,9 @@
 
 ## Planejamento
 
+- [Arquitetura inicial e decisões técnicas](arquitetura.md)
+- [Plano de implementação por etapas](plano-implementacao.md)
+
 - [Definição inicial do projeto (PDF)](definicao-projeto.pdf)
 - [Requisitos funcionais e não funcionais](requisitos/requisitos.md)
 - [Guia de desenvolvimento](desenvolvimento.md)
