@@ -1,40 +1,71 @@
 package com.jvogales.inventario.repository;
 
 import com.jvogales.inventario.model.entity.Categoria;
+import lombok.RequiredArgsConstructor;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
 
-import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicLong;
 
-/** Armazenamento temporário: os dados são perdidos ao reiniciar a aplicação. */
 @Repository
+@RequiredArgsConstructor
 public class CategoriaRepository {
 
-    private final ConcurrentHashMap<Long, Categoria> dados = new ConcurrentHashMap<>();
-    private final AtomicLong sequencia = new AtomicLong();
+    private final JdbcTemplate jdbcTemplate;
+
+    private final RowMapper<Categoria> rowMapper = (rs, numeroLinha) ->
+            new Categoria(
+                    rs.getLong("id"),
+                    rs.getString("nome"),
+                    rs.getString("descricao")
+            );
 
     public List<Categoria> listar() {
-        return dados.values().stream()
-                .sorted(Comparator.comparing(Categoria::getId))
-                .toList();
+        String sql = "SELECT id, nome, descricao FROM categoria ORDER BY id";
+        return jdbcTemplate.query(sql, rowMapper);
     }
 
     public Optional<Categoria> buscarPorId(Long id) {
-        return Optional.ofNullable(dados.get(id));
+        String sql = "SELECT id, nome, descricao FROM categoria WHERE id = ?";
+        return jdbcTemplate.query(sql, rowMapper, id)
+                .stream()
+                .findFirst();
     }
 
-    public Categoria salvar(Categoria entidade) {
-        if (entidade.getId() == null) {
-            entidade.setId(sequencia.incrementAndGet());
+    public Categoria salvar(Categoria categoria) {
+        if (categoria.getId() == null) {
+            String sql = """
+                    INSERT INTO categoria (nome, descricao)
+                    VALUES (?, ?)
+                    RETURNING id
+                    """;
+            Long id = jdbcTemplate.queryForObject(
+                    sql,
+                    Long.class,
+                    categoria.getNome(),
+                    categoria.getDescricao()
+            );
+            categoria.setId(id);
+        } else {
+            String sql = """
+                    UPDATE categoria
+                    SET nome = ?, descricao = ?
+                    WHERE id = ?
+                    """;
+            jdbcTemplate.update(
+                    sql,
+                    categoria.getNome(),
+                    categoria.getDescricao(),
+                    categoria.getId()
+            );
         }
-        dados.put(entidade.getId(), entidade);
-        return entidade;
+        return categoria;
     }
 
     public void excluir(Long id) {
-        dados.remove(id);
+        String sql = "DELETE FROM categoria WHERE id = ?";
+        jdbcTemplate.update(sql, id);
     }
 }
