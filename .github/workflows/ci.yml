@@ -9,9 +9,28 @@ permissions:
 
 jobs:
   verify:
-    name: Java 17 / Maven
+    name: Java 17 / Maven / PostgreSQL
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: gestao_inventario
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres_ci
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d gestao_inventario"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      DB_PASSWORD: postgres_ci
+      DB_USERNAME: postgres
+      DB_URL: jdbc:postgresql://localhost:5432/gestao_inventario
+      PGPASSWORD: postgres_ci
     steps:
       - name: Obter código
         uses: actions/checkout@v4
@@ -21,5 +40,7 @@ jobs:
           distribution: temurin
           java-version: '17'
           cache: maven
+      - name: Preparar tabela Categoria
+        run: psql -h localhost -U postgres -d gestao_inventario -f docs/sql/001_categoria.sql
       - name: Compilar e testar
         run: ./mvnw --batch-mode --no-transfer-progress clean verify
