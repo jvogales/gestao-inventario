@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{layout :: cabecalho('Detalhes do equipamento')}"></head>
+<body>
+<header th:replace="~{layout :: navegacao}"></header>
+<main id="conteudo">
+
+<a class="voltar" th:href="@{/}">← Equipamentos</a>
+<div th:replace="~{layout :: mensagem}"></div>
+<div class="titulo">
+    <h1 th:text="${equipamento.identificacao}"></h1>
+    <span class="estado" th:attr="data-estado=${equipamento.estado}" th:text="#{${'estado.' + equipamento.estado}}"></span>
+</div>
+<section class="painel ficha" aria-label="Dados do equipamento">
+    <dl>
+        <div><dt>Patrimônio</dt><dd class="patrimonio" th:text="${equipamento.numeroPatrimonio}"></dd></div>
+        <div><dt>Categoria</dt><dd th:text="${equipamento.categoria.nome}"></dd></div>
+        <div><dt>Localização atual</dt><dd th:text="${equipamento.localizacaoAtual.bloco + ' / ' + equipamento.localizacaoAtual.local}"></dd></div>
+        <div><dt>Marca</dt><dd th:text="${#strings.defaultString(equipamento.marca, '—')}"></dd></div>
+        <div><dt>Modelo</dt><dd th:text="${#strings.defaultString(equipamento.modelo, '—')}"></dd></div>
+        <div><dt>Observação</dt><dd th:text="${#strings.defaultString(equipamento.observacao, '—')}"></dd></div>
+    </dl>
+    <div th:if="${baixa == null}" class="acoes">
+        <a class="botao" th:href="@{/inventario/{id}/editar(id=${equipamento.id})}">Editar equipamento</a>
+        <a class="secundario" th:href="@{/inventario/{id}/movimentar(id=${equipamento.id})}">Movimentar</a>
+        <a class="secundario" th:href="@{/inventario/{id}/manutencoes/nova(id=${equipamento.id})}">Registrar manutenção</a>
+        <a class="secundario perigo" th:href="@{/inventario/{id}/baixar(id=${equipamento.id})}">Registrar baixa</a>
+    </div>
+    <form class="acoes estado-form" th:if="${baixa == null}" method="post" th:action="@{/inventario/{id}/estado(id=${equipamento.id})}">
+        <label>Novo estado<select name="estado">
+            <option th:each="item : ${estadosAtivos}" th:value="${item}" th:text="#{${'estado.' + item}}" th:selected="${item == equipamento.estado}"></option>
+        </select></label>
+        <button class="secundario">Alterar estado</button>
+    </form>
+</section>
+<section class="painel ficha" th:if="${baixa}">
+    <h2>Baixa patrimonial</h2>
+    <dl>
+        <div><dt>Data</dt><dd th:text="${#temporals.format(baixa.data, 'dd/MM/yyyy')}"></dd></div>
+        <div><dt>Motivo</dt><dd th:text="${baixa.motivo}"></dd></div>
+        <div><dt>Observação</dt><dd th:text="${#strings.defaultString(baixa.observacao, '—')}"></dd></div>
+    </dl>
+</section>
+<div class="historicos">
+    <section class="painel ficha">
+        <h2>Movimentações</h2>
+        <p class="vazio" th:if="${movimentacoes.empty}">Nenhuma movimentação registrada.</p>
+        <ul class="registros">
+            <li th:each="m : ${movimentacoes}">
+                <time th:datetime="${m.dataHora}" th:text="${#temporals.format(m.dataHora, 'dd/MM/yyyy HH:mm')}"></time>
+                <p th:text="${m.origem.bloco + ' / ' + m.origem.local + ' → ' + m.destino.bloco + ' / ' + m.destino.local}"></p>
+                <p th:if="${m.observacao}" th:text="${m.observacao}"></p>
+            </li>
+        </ul>
+    </section>
+    <section class="painel ficha">
+        <h2>Manutenções</h2>
+        <p class="vazio" th:if="${manutencoes.empty}">Nenhuma manutenção registrada.</p>
+        <ul class="registros">
+            <li th:each="m : ${manutencoes}">
+                <strong th:text="#{${'tipo.' + m.tipo}}"></strong> · <span th:text="#{${'status.' + m.status}}"></span>
+                <p><time th:datetime="${m.dataInicio}" th:text="${#temporals.format(m.dataInicio, 'dd/MM/yyyy')}"></time>
+                    <span th:if="${m.dataFim}" th:text="${' a ' + #temporals.format(m.dataFim, 'dd/MM/yyyy')}"></span></p>
+                <p th:text="${m.descricao}"></p>
+                <p th:if="${m.observacao}" th:text="${m.observacao}"></p>
+                <a th:if="${baixa == null}" th:href="@{/inventario/{id}/manutencoes/{mid}/editar(id=${equipamento.id},mid=${m.id})}">Editar manutenção</a>
+            </li>
+        </ul>
+    </section>
+</div>
+</main>
+</body>
+</html>

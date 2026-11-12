@@ -40,10 +40,8 @@ jobs:
           distribution: temurin
           java-version: '17'
           cache: maven
-      - name: Preparar banco e tabela de testes
+      - name: Criar banco de testes
         run: |
           psql -h localhost -U postgres -d gestao_inventario -c "CREATE DATABASE gestao_inventario_test;"
-          psql -h localhost -U postgres -d gestao_inventario_test -f docs/sql/001_categoria.sql
-          psql -h localhost -U postgres -d gestao_inventario_test -f docs/sql/002_categoria_nome_unico.sql
       - name: Compilar e testar
         run: ./mvnw --batch-mode --no-transfer-progress clean verify

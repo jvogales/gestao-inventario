@@ -2,7 +2,6 @@ package com.jvogales.inventario.service;
 
 import com.jvogales.inventario.model.entity.Categoria;
 import com.jvogales.inventario.repository.CategoriaRepository;
-import com.jvogales.inventario.repository.EquipamentoRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -15,7 +14,6 @@ import java.util.List;
 public class CategoriaService {
 
     private final CategoriaRepository repository;
-    private final EquipamentoRepository equipamentoRepository;
 
     public List<Categoria> listar() {
         return repository.listar();
@@ -37,25 +35,14 @@ public class CategoriaService {
         existente.setNome(dados.getNome());
         existente.setDescricao(dados.getDescricao());
 
-        var atualizada = repository.salvar(existente);
-
-        // Sincronização temporária enquanto EquipamentoRepository
-        // ainda utiliza armazenamento em memória.
-        equipamentoRepository.listar().stream()
-            .filter(e -> e.getCategoria().getId().equals(id))
-            .forEach(e -> e.setCategoria(atualizada));
-
-        return atualizada;
+        return repository.salvar(existente);
     }
 
     public void excluir(Long id) {
         buscarPorId(id);
-        boolean emUso = equipamentoRepository.listar().stream()
-                .anyMatch(equipamento -> equipamento.getCategoria().getId().equals(id));
-        if (emUso) {
+        if (!repository.excluirSeSemVinculos(id)) {
             throw new ResponseStatusException(HttpStatus.CONFLICT,
-                    "Categoria vinculada a equipamento não pode ser excluída.");
+                    "O registro possui vínculos com o inventário e não pode ser excluído.");
         }
-        repository.excluir(id);
     }
 }

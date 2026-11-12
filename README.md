@@ -1,80 +1,54 @@
 # Gestão de Inventário
 
-Sistema web para gerenciar equipamentos, localizações e o histórico de movimentações e manutenções. Projeto da disciplina de **Programação Orientada a Objetos II**.
+Sistema web para controle de equipamentos e histórico patrimonial. Projeto da disciplina de **Programação Orientada a Objetos II**.
 
-> **Em desenvolvimento:** CRUD REST com **categorias persistidas em PostgreSQL** e equipamentos/localizações ainda em memória. Entidades usam Lombok. Telas, históricos e persistência dos demais módulos serão desenvolvidos nas próximas etapas.
+O inventário reúne cadastro de categorias, localizações e equipamentos, pesquisa por patrimônio ou identificação, filtros, alteração de estado, movimentações, manutenções e baixa patrimonial. A aplicação usa Java 17, Spring Boot, Thymeleaf e PostgreSQL com JDBC.
 
-## Tecnologias
+## Executar no Windows ou no NetBeans
 
-| Componente | Tecnologia |
-| --- | --- |
-| Linguagem | Java 17 ou superior |
-| Backend | Spring Boot 3.5 / Spring MVC |
-| Interface prevista | Thymeleaf, HTML e CSS |
-| Build | Maven 3.9.11 via Wrapper |
-| Persistência | PostgreSQL com JDBC (Categoria); demais módulos em memória |
-
-## Executar
-
-Instale um **JDK 17 ou superior**. O Maven Wrapper baixa o Maven automaticamente; PostgreSQL é necessário para esta versão, inclusive para os testes de integração.
-
-```bash
-git clone https://github.com/jvogales/gestao-inventario.git
-cd gestao-inventario
-```
-
-**Linux / macOS**
-
-```bash
-./mvnw spring-boot:run
-```
-
-**Windows / PowerShell**
+1. Instale um **JDK 17** e o **PostgreSQL**. No pgAdmin, crie o banco `gestao_inventario` com o usuário que a aplicação vai usar. Para criar via `psql`, execute `CREATE DATABASE gestao_inventario;` conectado ao banco `postgres`.
+2. Abra o PowerShell na pasta do `pom.xml` e configure as variáveis da conexão. Use as credenciais do seu próprio PostgreSQL.
 
 ```powershell
+$env:DB_URL = 'jdbc:postgresql://localhost:5432/gestao_inventario'
+$env:DB_USERNAME = 'postgres'
+$env:DB_PASSWORD = Read-Host 'Senha do PostgreSQL' -MaskInput
 .\mvnw.cmd spring-boot:run
 ```
 
-Prepare o PostgreSQL e execute `docs/sql/001_categoria.sql` no banco `gestao_inventario`. Defina `DB_PASSWORD` no ambiente de execução do Spring Boot. Verifique `http://localhost:8081/actuator/health`: a resposta esperada é `{"status":"UP"}`. A rota `/` ainda não possui tela. Encerre com `Ctrl+C`.
+Use PowerShell 7 para `Read-Host -MaskInput`. No Linux/macOS, exporte as mesmas variáveis no terminal e rode `./mvnw spring-boot:run`. No NetBeans, abra a pasta como projeto Maven. Se for usar o botão **Run**, inicie a IDE a partir de um ambiente com as três variáveis já definidas.
+
+Abra [localhost:8081](http://localhost:8081). A verificação de saúde está em [localhost:8081/actuator/health](http://localhost:8081/actuator/health). Encerre com `Ctrl+C`.
+
+O Spring executa os [scripts SQL](src/main/resources/db) em ordem ao iniciar. Eles podem ser reaplicados e preservam as categorias existentes de uma instalação com o esquema original. A conta usada pela aplicação precisa poder criar tabelas e índices. Os mesmos scripts podem ser aplicados manualmente na ordem numérica via pgAdmin ou `psql`. Em um banco administrado separadamente, configure `SPRING_SQL_INIT_MODE=never` após aplicar os scripts.
 
 ## Testar e gerar o JAR
 
-```bash
-./mvnw clean verify
+Crie um banco separado chamado `gestao_inventario_test` e dê acesso ao mesmo usuário configurado acima. Para apontar para outra instância de teste, defina `TEST_DB_URL`. Os testes preparam o esquema ao iniciar e usam o banco de teste.
+
+```powershell
+.\mvnw.cmd clean verify
 ```
 
-No Windows, use `.\mvnw.cmd clean verify`. O comando executa testes que dependem do PostgreSQL e gera o JAR em `target/`.
+No Linux/macOS use `./mvnw clean verify`. O JAR executável fica em `target/gestao-inventario-0.0.1-SNAPSHOT.jar`. Para executar o JAR com as variáveis do banco de desenvolvimento configuradas, use `java -jar target/gestao-inventario-0.0.1-SNAPSHOT.jar`.
 
-## Organização
+## Roteiro de demonstração
 
-```text
-gestao-inventario/
-├── .github/workflows/  # Validação automática no GitHub
-├── .mvn/wrapper/       # Configuração do Maven Wrapper
-├── docs/               # Requisitos, diagramas e guias
-├── src/
-│   ├── main/java/      # Aplicação e camadas do sistema
-│   ├── main/resources/ # Configurações e futuros arquivos da interface
-│   └── test/java/      # Testes automatizados
-├── mvnw / mvnw.cmd     # Comandos Maven para Linux/macOS e Windows
-└── pom.xml             # Dependências e configuração do build
-```
+1. Em **Categorias**, cadastre Informática. Em **Localizações**, cadastre Laboratório 1 e Almoxarifado.
+2. Cadastre um equipamento com patrimônio `PAT-001`. Pesquise por esse patrimônio e combine os filtros de categoria, localização e estado.
+3. Abra a ficha, edite a identificação e altere o estado. Movimente o equipamento para o Almoxarifado e confira a localização atual e o histórico.
+4. Registre uma manutenção preventiva. Edite a manutenção, informe a data de fim e marque-a como concluída.
+5. Registre a baixa com data e motivo. Filtre a lista por **Baixado** e abra a ficha para conferir a baixa e os dois históricos.
+6. Reinicie a aplicação e repita a consulta para demonstrar a persistência.
+
+O ator Administrador é o papel definido para a demonstração acadêmica local. A aplicação não possui autenticação.
 
 ## Documentação
 
-- [Guia de desenvolvimento](docs/desenvolvimento.md): JDK, IDE, execução e estrutura de pacotes.
-- [API REST e exemplos para Postman](docs/api.md): rotas, JSON e respostas HTTP.
-- [Requisitos funcionais e não funcionais](docs/requisitos/requisitos.md).
-- [Diagramas e modelagem](docs/README.md).
-- [Modelo de domínio e decisões de implementação](docs/modelo-dominio.md).
-- [SQL inicial da tabela Categoria](docs/sql/001_categoria.sql).
-- [Definição inicial do projeto (PDF)](docs/definicao-projeto.pdf).
-
-## Escopo previsto
-
-- Cadastro e consulta de equipamentos, categorias e localizações.
-- Controle do estado e baixa dos equipamentos.
-- Registro e histórico de movimentações e manutenções.
+- [Requisitos e diagramas](docs/README.md)
+- [API REST](docs/api.md)
+- [Arquitetura](docs/arquitetura.md)
+- [Modelo de domínio](docs/modelo-dominio.md)
 
 ## Autor
 

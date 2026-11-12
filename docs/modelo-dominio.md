@@ -1,48 +1,29 @@
-# Modelo de domínio — primeira etapa
+# Modelo de domínio
 
-Esta etapa implementa `Equipamento`, `Categoria`, `Localizacao` e o enum
-`EstadoEquipamento`, conforme o [diagrama de classes](diagramas/classes/diagrama-de-classes-entidades.png).
-Os nomes e tipos dos atributos foram mantidos. As associações foram representadas
-em `Equipamento` por `categoria` e `localizacaoAtual`: vários equipamentos podem
-referenciar a mesma categoria ou localização, e cada equipamento deve ter uma de cada.
+O [diagrama de classes](diagramas/classes/diagrama-de-classes-entidades.png) define seis entidades.
 
-As classes usam `@Data`, `@NoArgsConstructor` e `@AllArgsConstructor` do Lombok
-para gerar getters/setters e construtores na compilação. São objetos Java sem
-anotações JPA, pois o RNF05 exige JDBC. IDs ficam nulos antes do cadastro;
-neste CRUD inicial, os repositories em memória geram os identificadores.
+| Entidade | Dados e associações |
+| --- | --- |
+| Categoria | Nome obrigatório e descrição opcional. Classifica vários equipamentos. |
+| Localização | Bloco e local obrigatórios, descrição opcional. Pode ser localização atual ou fazer parte de uma transferência. |
+| Equipamento | Patrimônio único, identificação, marca, modelo, observação, estado, categoria e localização atual. |
+| Movimentação | Equipamento, origem, destino, data/hora e observação. Um equipamento pode ter várias. |
+| Manutenção | Equipamento, tipo, datas de início/fim, descrição, status e observação. Um equipamento pode ter várias. |
+| Baixa | Equipamento, data, motivo e observação. Cada equipamento pode ter uma baixa. |
 
-## Validação
+## Regras adotadas para a entrega
 
-O RNF08 e o diagrama de cadastro exigem validar os dados antes de salvar, mas não
-enumeram todos os campos obrigatórios. Nesta implementação, adotamos:
+- O estado de um equipamento ativo pode ser `DISPONIVEL`, `EM_USO` ou `EM_MANUTENCAO`. O administrador escolhe o estado, inclusive durante a manutenção. A manutenção tem status próprio.
+- Para trocar a localização atual, o administrador registra uma movimentação para um destino cadastrado diferente da origem.
+- A manutenção é preventiva ou corretiva. A data final deve ser igual ou posterior à inicial e é obrigatória para concluir a manutenção.
+- A baixa é definitiva. O equipamento fica disponível para consulta com seus históricos, e o serviço bloqueia novas alterações.
+- Categorias e localizações vinculadas ao inventário ou a movimentações continuam disponíveis para referência.
+- Os atributos específicos por categoria permanecem em aberto no documento de requisitos.
 
-- `Categoria`: nome preenchido.
-- `Localizacao`: bloco e local preenchidos.
-- `Equipamento`: patrimônio, identificação, estado, categoria e localização atual preenchidos.
+As classes de cadastro usam Lombok e Bean Validation. Os registros de histórico usam records Java. A persistência usa JDBC e o banco gera os IDs.
 
-As referências de categoria e localização também são validadas com `@Valid`
-quando o modelo é validado diretamente. Na API, `EquipamentoRequest` recebe
-os IDs dessas referências; o service busca os registros existentes.
-Marca, modelo, descrições e observações permanecem opcionais; não foram inventados
-limites de tamanho. As anotações são executadas pelo Bean Validation: futuros
-controllers acionam a validação de entrada com `@Valid`. Setters não fazem
-validação automática.
 
-## Decisões ainda abertas na documentação original
-
-O diagrama cita `EstadoEquipamento`, mas não especifica suas constantes. A proposta
-inicial no código é `DISPONIVEL`, `EM_USO`, `EM_MANUTENCAO` e `BAIXADO`.
-Esses valores precisam acompanhar a evolução dos requisitos; não há regras de
-transição presumidas nesta etapa.
-
-Os atributos específicos por categoria continuam em aberto, conforme a observação
-final do documento de requisitos.
-
-## Próximas etapas
-
-`Movimentacao`, `Manutencao`, `Baixa` e seus enums continuam previstos no diagrama.
-Serão implementados nas próximas etapas, junto de seus comportamentos.
-A unicidade do patrimônio e a consulta de referências existentes já estão
-implementadas nos services do CRUD em memória. O registro de históricos,
-as permissões de movimentação e a persistência JDBC continuam pendentes.
-Consulte as [rotas e os limites da API atual](api.md).
+A proposta inicial em PDF menciona responsáveis, setores e especificações. Nesta versão,
+bloco e local representam a localização organizacional. A lista RF01–RF23 e o diagrama de
+classes orientam a entrega, com cadastro de responsáveis e especificações por categoria
+fora do modelo implementado.

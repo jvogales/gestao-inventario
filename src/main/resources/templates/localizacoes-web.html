@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{layout :: cabecalho('Localizações')}"></head>
+<body>
+<header th:replace="~{layout :: navegacao}"></header>
+<main id="conteudo">
+
+<h1>Localizações</h1>
+<div th:replace="~{layout :: mensagem}"></div>
+<div class="historicos">
+    <section class="painel ficha">
+        <h2>Localizações cadastradas</h2>
+        <p class="vazio" th:if="${locais.empty}">Nenhum registro cadastrado.</p>
+        <ul class="registros">
+            <li th:each="item : ${locais}">
+                <a th:href="@{/cadastros/localizacoes/{id}(id=${item.id})}" th:text="${item.bloco + ' / ' + item.local}"></a>
+                <p th:if="${item.descricao}" th:text="${item.descricao}"></p>
+            </li>
+        </ul>
+    </section>
+    <section>
+        <h2 th:text="${id == null ? 'Cadastrar localização' : 'Editar localização'}"></h2>
+        <form class="painel formulario" method="post" th:action="${id == null} ? @{/cadastros/localizacoes} : @{/cadastros/localizacoes/{id}(id=${id})}" th:object="${dados}" novalidate>
+    <div th:replace="~{layout :: validacao}"></div>
+    <div class="campos"><label>Bloco<input th:field="*{bloco}" th:attr="aria-invalid=${#fields.hasErrors('bloco')},aria-describedby=${#fields.hasErrors('bloco') ? 'erro-bloco' : null}" required><small class="erro" th:if="${#fields.hasErrors('bloco')}" th:id="'erro-bloco'" th:errors="*{bloco}"></small></label><label>Local<input th:field="*{local}" th:attr="aria-invalid=${#fields.hasErrors('local')},aria-describedby=${#fields.hasErrors('local') ? 'erro-local' : null}" required><small class="erro" th:if="${#fields.hasErrors('local')}" th:id="'erro-local'" th:errors="*{local}"></small></label></div><label>Descrição<textarea th:field="*{descricao}" th:attr="aria-invalid=${#fields.hasErrors('descricao')},aria-describedby=${#fields.hasErrors('descricao') ? 'erro-descricao' : null}" rows="3"></textarea><small class="erro" th:if="${#fields.hasErrors('descricao')}" th:id="'erro-descricao'" th:errors="*{descricao}"></small></label>
+    <div class="acoes"><button >Salvar localização</button><a class="secundario" th:href="${id == null} ? @{/} : @{/cadastros/localizacoes}">Cancelar</a></div>
+</form>
+    </section>
+</div>
+</main>
+</body>
+</html>

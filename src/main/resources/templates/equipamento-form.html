@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{layout :: cabecalho('Cadastro de equipamento')}"></head>
+<body>
+<header th:replace="~{layout :: navegacao}"></header>
+<main id="conteudo">
+
+<a class="voltar" th:href="@{/}">← Equipamentos</a>
+<h1 th:text="${id == null ? 'Cadastrar equipamento' : 'Editar equipamento'}"></h1>
+<p class="aviso" th:if="${categorias.empty or locais.empty}">
+    Para cadastrar um equipamento, cadastre uma <a th:href="@{/cadastros/categorias}">categoria</a> e uma
+    <a th:href="@{/cadastros/localizacoes}">localização</a>.
+</p>
+<form class="painel formulario" method="post" th:action="${id == null} ? @{/inventario/novo} : @{/inventario/{id}/editar(id=${id})}" th:object="${dados}" novalidate>
+    <div th:replace="~{layout :: validacao}"></div>
+
+    <div class="campos">
+        <label>Número de patrimônio<input th:field="*{numeroPatrimonio}" th:attr="aria-invalid=${#fields.hasErrors('numeroPatrimonio')},aria-describedby=${#fields.hasErrors('numeroPatrimonio') ? 'erro-numeroPatrimonio' : null}" required><small class="erro" th:if="${#fields.hasErrors('numeroPatrimonio')}" th:id="'erro-numeroPatrimonio'" th:errors="*{numeroPatrimonio}"></small></label>
+        <label>Identificação<input th:field="*{identificacao}" th:attr="aria-invalid=${#fields.hasErrors('identificacao')},aria-describedby=${#fields.hasErrors('identificacao') ? 'erro-identificacao' : null}" required><small class="erro" th:if="${#fields.hasErrors('identificacao')}" th:id="'erro-identificacao'" th:errors="*{identificacao}"></small></label>
+        <label>Marca<input th:field="*{marca}" th:attr="aria-invalid=${#fields.hasErrors('marca')},aria-describedby=${#fields.hasErrors('marca') ? 'erro-marca' : null}" ><small class="erro" th:if="${#fields.hasErrors('marca')}" th:id="'erro-marca'" th:errors="*{marca}"></small></label>
+        <label>Modelo<input th:field="*{modelo}" th:attr="aria-invalid=${#fields.hasErrors('modelo')},aria-describedby=${#fields.hasErrors('modelo') ? 'erro-modelo' : null}" ><small class="erro" th:if="${#fields.hasErrors('modelo')}" th:id="'erro-modelo'" th:errors="*{modelo}"></small></label>
+        <label>Categoria<select th:field="*{categoriaId}" th:attr="aria-invalid=${#fields.hasErrors('categoriaId')},aria-describedby=${#fields.hasErrors('categoriaId') ? 'erro-categoriaId' : null}" required>
+    <option value="">Selecione</option>
+    <option th:each="item : ${categorias}" th:value="${item.id}" th:text="${item.nome}"></option>
+</select><small class="erro" th:if="${#fields.hasErrors('categoriaId')}" th:id="'erro-categoriaId'" th:errors="*{categoriaId}"></small></label>
+        <th:block th:if="${id == null}">
+            <label>Localização inicial<select th:field="*{localizacaoId}" th:attr="aria-invalid=${#fields.hasErrors('localizacaoId')},aria-describedby=${#fields.hasErrors('localizacaoId') ? 'erro-localizacaoId' : null}" required>
+    <option value="">Selecione</option>
+    <option th:each="item : ${locais}" th:value="${item.id}" th:text="${item.bloco + ' / ' + item.local}"></option>
+</select><small class="erro" th:if="${#fields.hasErrors('localizacaoId')}" th:id="'erro-localizacaoId'" th:errors="*{localizacaoId}"></small></label>
+        </th:block>
+        <th:block th:unless="${id == null}">
+            <input type="hidden" th:field="*{localizacaoId}">
+            <div><strong>Localização atual</strong><p th:text="${equipamento.localizacaoAtual.bloco + ' / ' + equipamento.localizacaoAtual.local}"></p></div>
+        </th:block>
+        <label>Estado<select th:field="*{estado}" th:attr="aria-invalid=${#fields.hasErrors('estado')},aria-describedby=${#fields.hasErrors('estado') ? 'erro-estado' : null}" required>
+            <option th:each="item : ${estadosAtivos}" th:value="${item}" th:text="#{${'estado.' + item}}"></option>
+        </select><small class="erro" th:if="${#fields.hasErrors('estado')}" th:id="'erro-estado'" th:errors="*{estado}"></small></label>
+    </div>
+    <label>Observação<textarea th:field="*{observacao}" th:attr="aria-invalid=${#fields.hasErrors('observacao')},aria-describedby=${#fields.hasErrors('observacao') ? 'erro-observacao' : null}" rows="3"></textarea><small class="erro" th:if="${#fields.hasErrors('observacao')}" th:id="'erro-observacao'" th:errors="*{observacao}"></small></label>
+    <div class="acoes"><button th:disabled="${categorias.empty or locais.empty}">Salvar equipamento</button><a class="secundario" th:href="${id == null} ? @{/} : @{/inventario/{id}(id=${id})}">Cancelar</a></div>
+</form>
+</main>
+</body>
+</html>

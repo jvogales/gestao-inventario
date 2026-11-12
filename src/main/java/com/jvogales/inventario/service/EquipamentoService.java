@@ -5,13 +5,13 @@ import com.jvogales.inventario.model.entity.Equipamento;
 import com.jvogales.inventario.model.enums.EstadoEquipamento;
 import com.jvogales.inventario.repository.EquipamentoRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
-import java.util.Locale;
-import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
@@ -23,51 +23,67 @@ public class EquipamentoService {
 
     public List<Equipamento> listar(String pesquisa, Long categoriaId, Long localizacaoId,
                                     EstadoEquipamento estado) {
-        String termo = pesquisa == null ? "" : pesquisa.strip().toLowerCase(Locale.ROOT);
-        return repository.listar().stream()
-                .filter(e -> e.getNumeroPatrimonio().toLowerCase(Locale.ROOT).contains(termo)
-                        || e.getIdentificacao().toLowerCase(Locale.ROOT).contains(termo))
-                .filter(e -> categoriaId == null || e.getCategoria().getId().equals(categoriaId))
-                .filter(e -> localizacaoId == null || e.getLocalizacaoAtual().getId().equals(localizacaoId))
-                .filter(e -> estado == null || e.getEstado() == estado)
-                .toList();
+        return repository.listar(pesquisa == null ? "" : pesquisa.strip(), categoriaId, localizacaoId, estado);
     }
 
     public Equipamento buscarPorId(Long id) {
-        return repository.buscarPorId(id).orElseThrow(() ->
-                new ResponseStatusException(HttpStatus.NOT_FOUND, "Equipamento não encontrado."));
+        return repository.buscarPorId(id).orElseThrow(EquipamentoService::naoEncontrado);
     }
 
-    public synchronized Equipamento cadastrar(EquipamentoRequest dados) {
-        return salvar(null, dados);
+    @Transactional
+    public Equipamento cadastrar(EquipamentoRequest dados) {
+        validarEstado(dados.getEstado());
+        return salvar(new Equipamento(null, dados.getNumeroPatrimonio().strip(), dados.getIdentificacao(),
+                dados.getMarca(), dados.getModelo(), dados.getObservacao(), dados.getEstado(),
+                categoriaService.buscarPorId(dados.getCategoriaId()),
+                localizacaoService.buscarPorId(dados.getLocalizacaoId())));
     }
 
-    public synchronized Equipamento atualizar(Long id, EquipamentoRequest dados) {
-        buscarPorId(id);
-        return salvar(id, dados);
-    }
-
-    private Equipamento salvar(Long id, EquipamentoRequest dados) {
-        String patrimonio = dados.getNumeroPatrimonio().strip();
-        boolean duplicado = repository.listar().stream()
-                .anyMatch(e -> !Objects.equals(e.getId(), id)
-                        && e.getNumeroPatrimonio().equalsIgnoreCase(patrimonio));
-        if (duplicado) {
+    @Transactional
+    public Equipamento atualizar(Long id, EquipamentoRequest dados) {
+        var atual = bloquearAtivo(id);
+        validarEstado(dados.getEstado());
+        if (!atual.getLocalizacaoAtual().getId().equals(dados.getLocalizacaoId())) {
             throw new ResponseStatusException(HttpStatus.CONFLICT,
-                    "Número de patrimônio já cadastrado.");
+                    "Use a movimentação para alterar a localização.");
         }
-
-        var categoria = categoriaService.buscarPorId(dados.getCategoriaId());
-        var localizacao = localizacaoService.buscarPorId(dados.getLocalizacaoId());
-        var equipamento = new Equipamento(id, patrimonio, dados.getIdentificacao(),
-                dados.getMarca(), dados.getModelo(), dados.getObservacao(),
-                dados.getEstado(), categoria, localizacao);
-        return repository.salvar(equipamento);
+        return salvar(new Equipamento(id, dados.getNumeroPatrimonio().strip(), dados.getIdentificacao(),
+                dados.getMarca(), dados.getModelo(), dados.getObservacao(), dados.getEstado(),
+                categoriaService.buscarPorId(dados.getCategoriaId()), atual.getLocalizacaoAtual()));
     }
 
-    /** Exclusão do CRUD didático; não representa a baixa patrimonial (RF22). */
-    public synchronized void excluir(Long id) {
-        buscarPorId(id);
-        repository.excluir(id);
+    @Transactional
+    public Equipamento alterarEstado(Long id, EstadoEquipamento estado) {
+        var atual = bloquearAtivo(id);
+        validarEstado(estado);
+        repository.atualizarEstado(id, estado);
+        atual.setEstado(estado);
+        return atual;
+    }
+
+    Equipamento bloquearAtivo(Long id) {
+        var atual = repository.bloquearPorId(id).orElseThrow(EquipamentoService::naoEncontrado);
+        if (atual.getEstado() == EstadoEquipamento.BAIXADO) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Este equipamento já foi baixado.");
+        }
+        return atual;
+    }
+
+    private Equipamento salvar(Equipamento equipamento) {
+        try {
+            return repository.salvar(equipamento);
+        } catch (DuplicateKeyException ex) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Número de patrimônio já cadastrado.", ex);
+        }
+    }
+
+    private void validarEstado(EstadoEquipamento estado) {
+        if (estado == EstadoEquipamento.BAIXADO) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Use o registro de baixa para baixar um equipamento.");
+        }
+    }
+
+    private static ResponseStatusException naoEncontrado() {
+        return new ResponseStatusException(HttpStatus.NOT_FOUND, "Equipamento não encontrado.");
     }
 }

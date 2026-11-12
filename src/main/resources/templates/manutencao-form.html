@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{layout :: cabecalho('Manutenção')}"></head>
+<body>
+<header th:replace="~{layout :: navegacao}"></header>
+<main id="conteudo">
+
+<a class="voltar" th:href="@{/inventario/{id}(id=${equipamento.id})}">← Detalhes do equipamento</a>
+<h1 th:text="${manutencaoId == null ? 'Registrar manutenção' : 'Editar manutenção'}"></h1>
+<p th:text="${equipamento.identificacao + ' · ' + equipamento.numeroPatrimonio}"></p>
+<form class="painel formulario" method="post" th:action="${manutencaoId == null} ? @{/inventario/{id}/manutencoes/nova(id=${equipamento.id})} : @{/inventario/{id}/manutencoes/{mid}/editar(id=${equipamento.id},mid=${manutencaoId})}" th:object="${dados}" novalidate>
+    <div th:replace="~{layout :: validacao}"></div>
+
+    <div class="campos">
+        <label>Tipo<select th:field="*{tipo}" th:attr="aria-invalid=${#fields.hasErrors('tipo')},aria-describedby=${#fields.hasErrors('tipo') ? 'erro-tipo' : null}" required>
+            <option value="">Selecione</option>
+            <option th:each="item : ${tipos}" th:value="${item}" th:text="#{${'tipo.' + item}}"></option>
+        </select><small class="erro" th:if="${#fields.hasErrors('tipo')}" th:id="'erro-tipo'" th:errors="*{tipo}"></small></label>
+        <label>Status<select th:field="*{status}" th:attr="aria-invalid=${#fields.hasErrors('status')},aria-describedby=${#fields.hasErrors('status') ? 'erro-status' : null}" required>
+            <option th:each="item : ${statusDisponiveis}" th:value="${item}" th:text="#{${'status.' + item}}"></option>
+        </select><small class="erro" th:if="${#fields.hasErrors('status')}" th:id="'erro-status'" th:errors="*{status}"></small></label>
+        <label>Data de início<input th:field="*{dataInicio}" th:attr="aria-invalid=${#fields.hasErrors('dataInicio')},aria-describedby=${#fields.hasErrors('dataInicio') ? 'erro-dataInicio' : null}" type="date" required><small class="erro" th:if="${#fields.hasErrors('dataInicio')}" th:id="'erro-dataInicio'" th:errors="*{dataInicio}"></small></label>
+        <label>Data de fim<input th:field="*{dataFim}" th:attr="aria-invalid=${#fields.hasErrors('dataFim')},aria-describedby=${#fields.hasErrors('dataFim') ? 'erro-dataFim' : null}" type="date"><small class="erro" th:if="${#fields.hasErrors('dataFim')}" th:id="'erro-dataFim'" th:errors="*{dataFim}"></small></label>
+    </div>
+    <label>Descrição<textarea th:field="*{descricao}" th:attr="aria-invalid=${#fields.hasErrors('descricao')},aria-describedby=${#fields.hasErrors('descricao') ? 'erro-descricao' : null}" rows="3"></textarea><small class="erro" th:if="${#fields.hasErrors('descricao')}" th:id="'erro-descricao'" th:errors="*{descricao}"></small></label>
+    <label>Observação<textarea th:field="*{observacao}" th:attr="aria-invalid=${#fields.hasErrors('observacao')},aria-describedby=${#fields.hasErrors('observacao') ? 'erro-observacao' : null}" rows="3"></textarea><small class="erro" th:if="${#fields.hasErrors('observacao')}" th:id="'erro-observacao'" th:errors="*{observacao}"></small></label>
+    <div class="acoes"><button >Salvar manutenção</button><a class="secundario" th:href="@{/inventario/{id}(id=${equipamento.id})}">Cancelar</a></div>
+</form>
+</main>
+</body>
+</html>

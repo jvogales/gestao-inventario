@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head th:fragment="cabecalho(titulo)">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title th:text="${titulo + ' | Gestão de Inventário'}">Gestão de Inventário</title>
+    <link rel="stylesheet" th:href="@{/inventario.css}">
+</head>
+<body>
+<header th:fragment="navegacao" class="topo">
+    <a class="pular" href="#conteudo">Ir para o conteúdo</a>
+    <div class="barra">
+        <a class="marca" th:href="@{/}">Gestão de Inventário</a>
+        <nav aria-label="Principal">
+            <a th:href="@{/}">Equipamentos</a>
+            <a th:href="@{/cadastros/categorias}">Categorias</a>
+            <a th:href="@{/cadastros/localizacoes}">Localizações</a>
+        </nav>
+    </div>
+</header>
+<div th:fragment="validacao" th:if="${#fields.hasAnyErrors()}" class="aviso erro" role="alert">
+    <p th:if="${#fields.hasErrors('*') and !#fields.hasGlobalErrors()}">Revise os campos indicados.</p>
+    <p th:each="erro : ${#fields.globalErrors()}" th:text="${erro}"></p>
+</div>
+<p th:fragment="mensagem" th:if="${mensagem}" th:text="${mensagem}" class="aviso sucesso" role="status"></p>
+</body>
+</html>

@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{layout :: cabecalho('Categorias')}"></head>
+<body>
+<header th:replace="~{layout :: navegacao}"></header>
+<main id="conteudo">
+
+<h1>Categorias</h1>
+<div th:replace="~{layout :: mensagem}"></div>
+<div class="historicos">
+    <section class="painel ficha">
+        <h2>Categorias cadastradas</h2>
+        <p class="vazio" th:if="${categorias.empty}">Nenhum registro cadastrado.</p>
+        <ul class="registros">
+            <li th:each="item : ${categorias}">
+                <a th:href="@{/cadastros/categorias/{id}(id=${item.id})}" th:text="${item.nome}"></a>
+                <p th:if="${item.descricao}" th:text="${item.descricao}"></p>
+            </li>
+        </ul>
+    </section>
+    <section>
+        <h2 th:text="${id == null ? 'Cadastrar categoria' : 'Editar categoria'}"></h2>
+        <form class="painel formulario" method="post" th:action="${id == null} ? @{/cadastros/categorias} : @{/cadastros/categorias/{id}(id=${id})}" th:object="${dados}" novalidate>
+    <div th:replace="~{layout :: validacao}"></div>
+    <label>Nome<input th:field="*{nome}" th:attr="aria-invalid=${#fields.hasErrors('nome')},aria-describedby=${#fields.hasErrors('nome') ? 'erro-nome' : null}" maxlength="100" required><small class="erro" th:if="${#fields.hasErrors('nome')}" th:id="'erro-nome'" th:errors="*{nome}"></small></label><label>Descrição<textarea th:field="*{descricao}" th:attr="aria-invalid=${#fields.hasErrors('descricao')},aria-describedby=${#fields.hasErrors('descricao') ? 'erro-descricao' : null}" rows="3"></textarea><small class="erro" th:if="${#fields.hasErrors('descricao')}" th:id="'erro-descricao'" th:errors="*{descricao}"></small></label>
+    <div class="acoes"><button >Salvar categoria</button><a class="secundario" th:href="${id == null} ? @{/} : @{/cadastros/categorias}">Cancelar</a></div>
+</form>
+    </section>
+</div>
+</main>
+</body>
+</html>

@@ -2,6 +2,7 @@ package com.jvogales.inventario.controller;
 
 import com.jvogales.inventario.model.entity.Equipamento;
 import com.jvogales.inventario.service.EquipamentoService;
+import com.jvogales.inventario.service.HistoricoService;
 import com.jvogales.inventario.dto.EquipamentoRequest;
 import com.jvogales.inventario.model.enums.EstadoEquipamento;
 import jakarta.validation.Valid;
@@ -18,6 +19,7 @@ import java.util.List;
 public class EquipamentoController {
 
     private final EquipamentoService service;
+    private final HistoricoService historico;
 
     @GetMapping
     public ResponseEntity<List<Equipamento>> listar(
@@ -49,7 +51,7 @@ public class EquipamentoController {
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> excluir(@PathVariable Long id) {
-        service.excluir(id);
+        historico.excluirLegado(id);
         return ResponseEntity.noContent().build();
     }
 }

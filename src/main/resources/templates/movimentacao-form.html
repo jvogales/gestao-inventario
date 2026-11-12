@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{layout :: cabecalho('Movimentar equipamento')}"></head>
+<body>
+<header th:replace="~{layout :: navegacao}"></header>
+<main id="conteudo">
+
+<a class="voltar" th:href="@{/inventario/{id}(id=${equipamento.id})}">← Detalhes do equipamento</a>
+<h1>Movimentar equipamento</h1>
+<p th:text="${equipamento.identificacao + ' · ' + equipamento.numeroPatrimonio}"></p>
+<p>Origem <strong th:text="${equipamento.localizacaoAtual.bloco + ' / ' + equipamento.localizacaoAtual.local}"></strong></p>
+<p class="aviso" th:if="${destinos.empty}">Cadastre outra <a th:href="@{/cadastros/localizacoes}">localização</a> para movimentar o equipamento.</p>
+<form class="painel formulario" method="post" th:action="@{/inventario/{id}/movimentar(id=${equipamento.id})}" th:object="${dados}" novalidate>
+    <div th:replace="~{layout :: validacao}"></div>
+
+    <label>Destino<select th:field="*{destinoId}" th:attr="aria-invalid=${#fields.hasErrors('destinoId')},aria-describedby=${#fields.hasErrors('destinoId') ? 'erro-destinoId' : null}" required>
+    <option value="">Selecione</option>
+    <option th:each="item : ${destinos}" th:value="${item.id}" th:text="${item.bloco + ' / ' + item.local}"></option>
+</select><small class="erro" th:if="${#fields.hasErrors('destinoId')}" th:id="'erro-destinoId'" th:errors="*{destinoId}"></small></label>
+    <label>Observação<textarea th:field="*{observacao}" th:attr="aria-invalid=${#fields.hasErrors('observacao')},aria-describedby=${#fields.hasErrors('observacao') ? 'erro-observacao' : null}" rows="3"></textarea><small class="erro" th:if="${#fields.hasErrors('observacao')}" th:id="'erro-observacao'" th:errors="*{observacao}"></small></label>
+    <div class="acoes"><button th:disabled="${destinos.empty}">Confirmar movimentação</button><a class="secundario" th:href="@{/inventario/{id}(id=${equipamento.id})}">Cancelar</a></div>
+</form>
+</main>
+</body>
+</html>

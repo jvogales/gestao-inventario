@@ -83,9 +83,15 @@ public class CategoriaRepository {
         }
     }
 
-    public void excluir(Long id) {
-        String sql = "DELETE FROM categoria WHERE id = ?";
-        jdbcTemplate.update(sql, id);
+    public boolean excluirSeSemVinculos(Long id) {
+        try {
+            return jdbcTemplate.update("""
+                    DELETE FROM categoria c WHERE c.id = ?
+                    AND NOT EXISTS (SELECT 1 FROM equipamento e WHERE e.categoria_id = c.id)
+                    """, id) > 0;
+        } catch (DataIntegrityViolationException ex) {
+            return false;
+        }
     }
     
     private boolean violouUnicidadeNome(DataIntegrityViolationException ex) {

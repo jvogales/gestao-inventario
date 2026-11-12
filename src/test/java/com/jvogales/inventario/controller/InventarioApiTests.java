@@ -8,6 +8,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.HashMap;
@@ -15,6 +16,7 @@ import java.util.Map;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.hamcrest.Matchers.containsString;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -32,7 +34,7 @@ class InventarioApiTests {
     private ObjectMapper mapper;
 
     @Test
-    void executaCrudComIdsGeradosELocation() throws Exception {
+    void cadastraEditaERegistraBaixaPelaRotaLegada() throws Exception {
         long categoria = criar("/categorias", Map.of("id", 9000, "nome", "Informática"));
         long local = criar("/localizacoes", Map.of("bloco", "A", "local", "Laboratório"));
         assertThat(categoria).isNotEqualTo(9000L);
@@ -67,9 +69,11 @@ class InventarioApiTests {
         mvc.perform(delete("/localizacoes/{id}", local)).andExpect(status().isConflict());
         mvc.perform(delete("/equipamentos/{id}", id))
                 .andExpect(status().isNoContent()).andExpect(content().string(""));
-        mvc.perform(delete("/categorias/{id}", categoria)).andExpect(status().isNoContent());
-        mvc.perform(delete("/localizacoes/{id}", local)).andExpect(status().isNoContent());
-        mvc.perform(get("/equipamentos/{id}", id)).andExpect(status().isNotFound());
+        mvc.perform(delete("/categorias/{id}", categoria)).andExpect(status().isConflict());
+        mvc.perform(delete("/localizacoes/{id}", local)).andExpect(status().isConflict());
+        mvc.perform(get("/equipamentos/{id}", id)).andExpect(status().isOk())
+                .andExpect(jsonPath("$.estado").value("BAIXADO"));
+        mvc.perform(get("/equipamentos/{id}/baixa", id)).andExpect(status().isOk());
     }
 
     @Test
@@ -98,8 +102,9 @@ class InventarioApiTests {
     }
 
     @Test
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
     void rejeitaPatrimonioDuplicadoSemAlterarEquipamentoExistente() throws Exception {
-        long categoria = criar("/categorias", Map.of("nome", "Teste"));
+        long categoria = criar("/categorias", Map.of("nome", "Duplicidade " + UUID.randomUUID()));
         long local = criar("/localizacoes", Map.of("bloco", "A", "local", "Sala"));
         var primeiro = equipamento(categoria, local);
         long id = criar("/equipamentos", primeiro);
@@ -138,6 +143,77 @@ class InventarioApiTests {
                 .andExpect(status().isOk()).andExpect(content().json("[]"));
     }
 
+    @Test
+    void registraHistoricosEConservaEquipamentoAposBaixa() throws Exception {
+        long categoria = criar("/categorias", Map.of("nome", "Equipamentos de laboratório"));
+        long origem = criar("/localizacoes", Map.of("bloco", "A", "local", "Sala 1"));
+        long destino = criar("/localizacoes", Map.of("bloco", "A", "local", "Sala 2"));
+        long id = criar("/equipamentos", equipamento(categoria, origem));
+        String rota = "/equipamentos/" + id;
+
+        mvc.perform(post(rota + "/movimentacoes").contentType(MediaType.APPLICATION_JSON)
+                        .content(mapper.writeValueAsString(Map.of("destinoId", origem))))
+                .andExpect(status().isConflict());
+        mvc.perform(post(rota + "/movimentacoes").contentType(MediaType.APPLICATION_JSON)
+                        .content(mapper.writeValueAsString(Map.of("destinoId", destino, "observacao", "Transferência"))))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.origem.id").value(origem))
+                .andExpect(jsonPath("$.destino.id").value(destino));
+        mvc.perform(get(rota)).andExpect(jsonPath("$.localizacaoAtual.id").value(destino));
+        mvc.perform(delete("/localizacoes/{id}", origem)).andExpect(status().isConflict());
+
+        Map<String, Object> manutencao = new HashMap<>(Map.of("tipo", "PREVENTIVA", "dataInicio", "2026-10-20",
+                "descricao", "Limpeza", "status", "ABERTA"));
+        var resposta = mvc.perform(post(rota + "/manutencoes").contentType(MediaType.APPLICATION_JSON)
+                        .content(mapper.writeValueAsString(manutencao)))
+                .andExpect(status().isCreated()).andReturn().getResponse();
+        long manutencaoId = mapper.readTree(resposta.getContentAsString()).get("id").asLong();
+        manutencao.put("status", "CONCLUIDA");
+        mvc.perform(put(rota + "/manutencoes/{id}", manutencaoId).contentType(MediaType.APPLICATION_JSON)
+                        .content(mapper.writeValueAsString(manutencao)))
+                .andExpect(status().isBadRequest());
+        manutencao.put("dataFim", "2026-10-21");
+        mvc.perform(put(rota + "/manutencoes/{id}", manutencaoId).contentType(MediaType.APPLICATION_JSON)
+                        .content(mapper.writeValueAsString(manutencao)))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.status").value("CONCLUIDA"));
+
+        String baixa = mapper.writeValueAsString(Map.of("data", "2026-10-22", "motivo", "Fim da vida útil"));
+        mvc.perform(post(rota + "/baixa").contentType(MediaType.APPLICATION_JSON).content(baixa))
+                .andExpect(status().isCreated());
+        mvc.perform(post(rota + "/baixa").contentType(MediaType.APPLICATION_JSON).content(baixa))
+                .andExpect(status().isConflict());
+        mvc.perform(post(rota + "/movimentacoes").contentType(MediaType.APPLICATION_JSON)
+                        .content(mapper.writeValueAsString(Map.of("destinoId", origem))))
+                .andExpect(status().isConflict());
+        mvc.perform(get(rota)).andExpect(jsonPath("$.estado").value("BAIXADO"));
+        mvc.perform(get(rota + "/movimentacoes")).andExpect(jsonPath("$.length()").value(1));
+        mvc.perform(get(rota + "/manutencoes")).andExpect(jsonPath("$[0].status").value("CONCLUIDA"));
+        mvc.perform(get("/inventario/{id}", id)).andExpect(status().isOk())
+                .andExpect(content().string(containsString("Baixa patrimonial")));
+    }
+
+    @Test
+    void renderizaFormulariosERegistraMovimentacaoPelaInterface() throws Exception {
+        long categoria = criar("/categorias", Map.of("nome", "Categoria web"));
+        long origem = criar("/localizacoes", Map.of("bloco", "A", "local", "Depósito"));
+        long destino = criar("/localizacoes", Map.of("bloco", "B", "local", "Laboratório"));
+        long id = criar("/equipamentos", equipamento(categoria, origem));
+        String rota = "/inventario/" + id;
+
+        for (String tela : new String[]{"/", "/inventario/novo", rota, rota + "/editar",
+                rota + "/movimentar", rota + "/manutencoes/nova", rota + "/baixar",
+                "/cadastros/categorias", "/cadastros/localizacoes"}) {
+            mvc.perform(get(tela)).andExpect(status().isOk());
+        }
+        mvc.perform(post(rota + "/movimentar")).andExpect(status().isOk())
+                .andExpect(content().string(containsString("Informe o destino.")));
+        mvc.perform(post(rota + "/movimentar").param("destinoId", String.valueOf(destino)))
+                .andExpect(redirectedUrl(rota));
+        mvc.perform(get("/equipamentos/{id}", id)).andExpect(jsonPath("$.localizacaoAtual.id").value(destino));
+        mvc.perform(post(rota + "/manutencoes/nova").param("tipo", "CORRETIVA")
+                        .param("status", "ABERTA").param("dataInicio", "2026-10-20").param("descricao", "Reparo"))
+                .andExpect(redirectedUrl(rota));
+    }
     private long criar(String rota, Map<String, ?> dados) throws Exception {
         var resposta = mvc.perform(post(rota).contentType(MediaType.APPLICATION_JSON)
                         .content(mapper.writeValueAsString(dados)))

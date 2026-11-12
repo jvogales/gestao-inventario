@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{layout :: cabecalho('Operação indisponível')}"></head>
+<body>
+<header th:replace="~{layout :: navegacao}"></header>
+<main id="conteudo">
+
+<h1>Operação indisponível</h1>
+<p class="aviso erro" role="alert" th:text="${erro}"></p>
+<a class="botao" th:href="@{/}">Voltar ao inventário</a>
+</main>
+</body>
+</html>
