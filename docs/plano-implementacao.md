@@ -1,18 +1,18 @@
 # Plano de implementação
 
-Este plano deriva de [arquitetura](arquitetura.md), [requisitos](requisitos/requisitos.md) e do código-base existente. Itens abaixo são **trabalho a realizar**, não funcionalidades concluídas.
+Este plano deriva de [arquitetura](arquitetura.md), [requisitos](requisitos/requisitos.md) e do código-base existente. As etapas foram concluídas na entrega final.
 
 | Etapa | Entrega | Critério mínimo de conclusão |
 | --- | --- | --- |
-| 0 | Ambiente e base versionados | Aplicação inicia pela IDE; informações sensíveis fora do Git |
-| 1 | Categoria persistida | Tabela versionada, CRUD JDBC coerente, validações e testes |
-| 2 | Localização persistida | Cadastro e consulta no PostgreSQL; referências validadas |
-| 3 | Equipamento persistido | Patrimônio único, categoria e localização com integridade referencial |
-| 4 | Movimentação | Transação atômica, localização atual atualizada e histórico consultável |
-| 5 | Manutenção | Preventiva/corretiva, atualização e histórico por equipamento |
-| 6 | Baixa | Registro sem apagar equipamento, consulta posterior preservada |
-| 7 | Interface web | Telas Thymeleaf para os fluxos centrais do Administrador |
-| 8 | Qualidade e entrega | Testes, documentação, revisão dos RF/RNF e roteiro de demonstração |
+| 0 | Ambiente e base versionados | Concluído |
+| 1 | Categoria persistida | Concluído |
+| 2 | Localização persistida | Concluído |
+| 3 | Equipamento persistido | Concluído |
+| 4 | Movimentação | Concluído |
+| 5 | Manutenção | Concluído |
+| 6 | Baixa | Concluído |
+| 7 | Interface web | Concluído |
+| 8 | Qualidade e entrega | Concluído com testes automatizados e documentação |
 
 ## Regra de trabalho
 

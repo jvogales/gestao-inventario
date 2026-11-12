@@ -1,80 +1,61 @@
 # Gestão de Inventário
 
-Sistema web para gerenciar equipamentos, localizações e o histórico de movimentações e manutenções. Projeto da disciplina de **Programação Orientada a Objetos II**.
+Sistema web completo para cadastro e controle do ciclo de vida de equipamentos, desenvolvido com Java, Spring Boot, Thymeleaf, JDBC e PostgreSQL.
 
-> **Em desenvolvimento:** CRUD REST com **categorias persistidas em PostgreSQL** e equipamentos/localizações ainda em memória. Entidades usam Lombok. Telas, históricos e persistência dos demais módulos serão desenvolvidos nas próximas etapas.
+## Funcionalidades
 
-## Tecnologias
+- Categorias, localizações e equipamentos persistidos no PostgreSQL.
+- Pesquisa e filtros de equipamentos pela API.
+- Movimentação com atualização automática da localização e histórico.
+- Manutenção preventiva/corretiva, conclusão e histórico.
+- Baixa patrimonial sem apagar o equipamento ou seus registros.
+- Painel web responsivo e API REST para testes no Postman.
+- Validação, respostas HTTP e proteção contra patrimônio duplicado.
 
-| Componente | Tecnologia |
-| --- | --- |
-| Linguagem | Java 17 ou superior |
-| Backend | Spring Boot 3.5 / Spring MVC |
-| Interface prevista | Thymeleaf, HTML e CSS |
-| Build | Maven 3.9.11 via Wrapper |
-| Persistência | PostgreSQL com JDBC (Categoria); demais módulos em memória |
+## Executar no Windows / NetBeans
 
-## Executar
+Pré-requisitos: JDK 17 ou superior e PostgreSQL em execução.
 
-Instale um **JDK 17 ou superior**. O Maven Wrapper baixa o Maven automaticamente; PostgreSQL é necessário para esta versão, inclusive para os testes de integração.
+1. Crie o banco com `CREATE DATABASE gestao_inventario;`.
+2. Defina a variável de usuário `DB_PASSWORD` com a senha do usuário `postgres`.
+3. Feche e abra o NetBeans para carregar a variável.
+4. Atualize com `git pull`, abra como projeto Maven e clique em **Run**.
+5. Acesse [http://localhost:8081](http://localhost:8081).
 
-```bash
-git clone https://github.com/jvogales/gestao-inventario.git
-cd gestao-inventario
-```
+O `schema.sql` cria automaticamente todas as tabelas. Nenhuma senha é salva no GitHub.
 
-**Linux / macOS**
+## Executar e testar pelo terminal
 
 ```bash
 ./mvnw spring-boot:run
-```
-
-**Windows / PowerShell**
-
-```powershell
-.\mvnw.cmd spring-boot:run
-```
-
-Prepare o PostgreSQL e execute `docs/sql/001_categoria.sql` no banco `gestao_inventario`. Defina `DB_PASSWORD` no ambiente de execução do Spring Boot. Verifique `http://localhost:8081/actuator/health`: a resposta esperada é `{"status":"UP"}`. A rota `/` ainda não possui tela. Encerre com `Ctrl+C`.
-
-## Testar e gerar o JAR
-
-```bash
 ./mvnw clean verify
 ```
 
-No Windows, use `.\mvnw.cmd clean verify`. O comando executa testes que dependem do PostgreSQL e gera o JAR em `target/`.
+No PowerShell, use `.\mvnw.cmd`. Os testes usam H2 isolado em memória e não alteram o PostgreSQL de desenvolvimento.
 
-## Organização
+## Rotas principais
 
-```text
-gestao-inventario/
-├── .github/workflows/  # Validação automática no GitHub
-├── .mvn/wrapper/       # Configuração do Maven Wrapper
-├── docs/               # Requisitos, diagramas e guias
-├── src/
-│   ├── main/java/      # Aplicação e camadas do sistema
-│   ├── main/resources/ # Configurações e futuros arquivos da interface
-│   └── test/java/      # Testes automatizados
-├── mvnw / mvnw.cmd     # Comandos Maven para Linux/macOS e Windows
-└── pom.xml             # Dependências e configuração do build
-```
+| Recurso | Rotas |
+| --- | --- |
+| Interface | `/` ou `/app` |
+| Equipamentos | `/equipamentos` |
+| Categorias | `/categorias` |
+| Localizações | `/localizacoes` |
+| Movimentações | `/movimentacoes` |
+| Manutenções | `/manutencoes` |
+| Baixas | `/baixas` |
+| Saúde | `/actuator/health` |
 
-## Documentação
+## Regras implementadas
 
-- [Guia de desenvolvimento](docs/desenvolvimento.md): JDK, IDE, execução e estrutura de pacotes.
-- [API REST e exemplos para Postman](docs/api.md): rotas, JSON e respostas HTTP.
-- [Requisitos funcionais e não funcionais](docs/requisitos/requisitos.md).
-- [Diagramas e modelagem](docs/README.md).
-- [Modelo de domínio e decisões de implementação](docs/modelo-dominio.md).
-- [SQL inicial da tabela Categoria](docs/sql/001_categoria.sql).
-- [Definição inicial do projeto (PDF)](docs/definicao-projeto.pdf).
+- Número patrimonial é único.
+- Categoria e localização precisam existir antes do equipamento.
+- Movimentação registra origem/destino e atualiza a localização na mesma transação.
+- Equipamento baixado não pode ser movimentado nem receber manutenção.
+- Baixa preserva o equipamento e todo o histórico.
+- Categoria/localização em uso não pode ser excluída.
 
-## Escopo previsto
-
-- Cadastro e consulta de equipamentos, categorias e localizações.
-- Controle do estado e baixa dos equipamentos.
-- Registro e histórico de movimentações e manutenções.
+Documentação adicional está em [`docs/`](docs/README.md).
 
 ## Autor
 

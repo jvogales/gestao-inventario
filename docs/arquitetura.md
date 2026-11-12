@@ -12,16 +12,16 @@ Aplicação web para um único ator (**Administrador**) cadastrar e consultar eq
 | --- | --- | --- |
 | Linguagem | Java 17 como versão de compilação | Configurada no `pom.xml`; execução em JDK superior é possível |
 | Backend | Spring Boot 3.5, Spring MVC | Implementado |
-| Interface | Thymeleaf, HTML e CSS | Planejado; API REST existente não é a interface final |
-| Banco de dados | PostgreSQL | Integração JDBC iniciada na cópia de trabalho |
-| Persistência | Spring JDBC / `JdbcTemplate` | Prevista pelo RNF05; não usar JPA sem revisar o requisito |
+| Interface | Thymeleaf, HTML e CSS | Implementada em `/app` |
+| Banco de dados | PostgreSQL | Implementado com schema automático |
+| Persistência | Spring JDBC / `JdbcTemplate` | Implementada conforme RNF05 |
 | Build e dependências | Maven Wrapper | Disponível |
 | Versionamento | Git + GitHub | Disponível |
 
 ## Componentes e dependências
 
 ```text
-Navegador (futura interface Thymeleaf)
+Navegador (interface Thymeleaf)
           |
           v
 Controller  -> recebe HTTP, valida entrada e prepara resposta/navegação
@@ -38,13 +38,11 @@ PostgreSQL  -> dados persistentes e integridade referencial
 
 O módulo de interface web pode coexistir com endpoints REST durante a migração. A divisão em camadas **não** implica criar controllers que acessem SQL diretamente. O Service é o lugar apropriado para decidir, por exemplo, se uma movimentação ou baixa é permitida.
 
-## Situação verificada em 28/10/2026
+## Situação da entrega
 
-- A branch `main` consultada ainda descreve repositórios em memória e configura a aplicação para iniciar sem banco.
-- Na cópia do projeto executada na UENP, a rota `GET /equipamentos` retornou `[]` (repository em memória).
-- Na mesma cópia, `GET /categorias` passou a responder `[]` após a criação da tabela `categoria` no PostgreSQL.
-- O projeto em execução usou a porta **8081**. A configuração da branch `main` pode ser diferente; conferir o arquivo local `application.properties`.
-- Portanto, **não assumir que a persistência JDBC da cópia local já foi publicada no GitHub**.
+Todos os módulos previstos possuem entidade, repository JDBC, service, endpoint
+REST e fluxo na interface web. O schema é aplicado automaticamente. Os testes
+usam H2 isolado e a aplicação de desenvolvimento usa PostgreSQL na porta 8081.
 
 ## Modelo de domínio previsto
 
@@ -86,11 +84,10 @@ O DDL inicial de `categoria` executado na UENP serve como teste de conexão, mas
 
 Cada etapa deve produzir uma funcionalidade verificável, documentação atualizada e commit separado.
 
-## Decisões pendentes
+## Decisões adotadas na entrega
 
-- Confirmar estrutura final de tabelas, tipos de dados e restrições.
-- Definir transições permitidas de `EstadoEquipamento`.
-- Detalhar regras de edição e encerramento de manutenção.
-- Definir comportamento para categorias/localizações em uso.
-- Escolher estratégia de migrações SQL e testes de integração.
-- Definir quando remover endpoints `DELETE` do protótipo para respeitar as regras patrimoniais.
+- Tabelas e restrições ficam em `schema.sql` e são criadas automaticamente.
+- Baixa bloqueia movimentação e manutenção; conclusão de manutenção libera o equipamento.
+- Categorias e localizações em uso não podem ser excluídas.
+- Testes usam H2 compatível com PostgreSQL e isolado do banco de desenvolvimento.
+- A interface usa baixa patrimonial; endpoints DELETE permanecem apenas na API de CRUD.

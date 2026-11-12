@@ -41,9 +41,7 @@ public class LocalizacaoService {
 
     public void excluir(Long id) {
         buscarPorId(id);
-        boolean emUso = equipamentoRepository.listar().stream()
-                .anyMatch(equipamento -> equipamento.getLocalizacaoAtual().getId().equals(id));
-        if (emUso) {
+        if (equipamentoRepository.existePorLocalizacao(id)) {
             throw new ResponseStatusException(HttpStatus.CONFLICT,
                     "Localização vinculada a equipamento não pode ser excluída.");
         }

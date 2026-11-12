@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Gestão de Inventário</title>
+  <link rel="stylesheet" th:href="@{/css/app.css}" href="/css/app.css">
+  <script defer th:src="@{/js/app.js}" src="/js/app.js"></script>
+</head>
+<body>
+<a class="skip-link" href="#conteudo">Ir para o conteúdo</a>
+<div class="shell">
+  <aside class="sidebar" aria-label="Navegação principal">
+    <a class="brand" href="#inicio"><span class="brand-mark">GI</span><span>Gestão<br>de Inventário</span></a>
+    <nav>
+      <a href="#inicio">Visão geral</a><a href="#equipamentos">Equipamentos</a>
+      <a href="#categorias">Categorias</a><a href="#localizacoes">Localizações</a>
+      <a href="#movimentacoes">Movimentações</a><a href="#manutencoes">Manutenções</a>
+      <a href="#baixas">Baixas</a>
+    </nav>
+    <p class="sidebar-note">POO II · Spring Boot<br>PostgreSQL + JDBC</p>
+  </aside>
+
+  <main id="conteudo">
+    <header id="inicio" class="hero">
+      <div><p class="eyebrow">CONTROLE PATRIMONIAL / PAINEL</p><h1>Equipamentos sob controle,<br><em>histórico preservado.</em></h1></div>
+      <div class="asset-tag"><span>SISTEMA</span><strong>INV-2026</strong><small>ONLINE</small></div>
+    </header>
+
+    <div th:if="${sucesso}" class="notice success" role="status" th:text="${sucesso}"></div>
+    <div th:if="${erro}" class="notice error" role="alert" th:text="${erro}"></div>
+
+    <section class="stats" aria-label="Resumo do inventário">
+      <article><span>Equipamentos ativos</span><strong th:text="${totalAtivos}">0</strong></article>
+      <article><span>Em manutenção</span><strong th:text="${totalManutencao}">0</strong></article>
+      <article><span>Categorias</span><strong th:text="${#lists.size(categorias)}">0</strong></article>
+      <article><span>Localizações</span><strong th:text="${#lists.size(localizacoes)}">0</strong></article>
+    </section>
+
+    <section id="equipamentos" class="module">
+      <div class="section-head"><div><span class="index">01</span><h2>Equipamentos</h2><p>Cadastre e acompanhe os ativos da organização.</p></div></div>
+      <div class="split">
+        <form method="post" action="/app/equipamentos" novalidate class="card form-card">
+          <h3>Novo equipamento</h3>
+          <label>Número de patrimônio<input name="numeroPatrimonio" required placeholder="Ex.: PAT-001"></label>
+          <label>Identificação<input name="identificacao" required placeholder="Ex.: Notebook do laboratório"></label>
+          <div class="form-row"><label>Marca<input name="marca"></label><label>Modelo<input name="modelo"></label></div>
+          <div class="form-row"><label>Categoria<select name="categoriaId" required><option value="">Selecione</option><option th:each="c:${categorias}" th:value="${c.id}" th:text="${c.nome}"></option></select></label>
+          <label>Localização<select name="localizacaoId" required><option value="">Selecione</option><option th:each="l:${localizacoes}" th:value="${l.id}" th:text="${l.bloco+' · '+l.local}"></option></select></label></div>
+          <label>Estado<select name="estado" required><option th:each="e:${estados}" th:value="${e}" th:text="${#strings.replace(e,'_',' ')}"></option></select></label>
+          <label>Observação<textarea name="observacao" rows="3"></textarea></label>
+          <button class="btn primary" type="submit">Cadastrar equipamento</button>
+        </form>
+        <div class="card table-card"><div class="table-scroll"><table><thead><tr><th>Patrimônio</th><th>Identificação</th><th>Categoria</th><th>Local</th><th>Estado</th></tr></thead><tbody>
+          <tr th:each="e:${equipamentos}"><td class="mono" th:text="${e.numeroPatrimonio}"></td><td th:text="${e.identificacao}"></td><td th:text="${e.categoria.nome}"></td><td th:text="${e.localizacaoAtual.bloco+' · '+e.localizacaoAtual.local}"></td><td><span class="badge" th:classappend="${e.estado.name()=='BAIXADO'?' danger':(e.estado.name()=='EM_MANUTENCAO'?' warning':'')}" th:text="${#strings.replace(e.estado,'_',' ')}"></span></td></tr>
+          <tr th:if="${#lists.isEmpty(equipamentos)}"><td colspan="5" class="empty">Nenhum equipamento cadastrado. Use o formulário ao lado.</td></tr>
+        </tbody></table></div></div>
+      </div>
+    </section>
+
+    <section id="categorias" class="module compact"><div class="section-head"><div><span class="index">02</span><h2>Categorias</h2></div></div><div class="split">
+      <form method="post" action="/app/categorias" novalidate class="card form-card"><h3>Nova categoria</h3><label>Nome<input name="nome" required></label><label>Descrição<textarea name="descricao" rows="3"></textarea></label><button class="btn primary" type="submit">Cadastrar categoria</button></form>
+      <div class="card table-card"><div class="table-scroll"><table><thead><tr><th>ID</th><th>Nome</th><th>Descrição</th></tr></thead><tbody><tr th:each="c:${categorias}"><td class="mono" th:text="${c.id}"></td><td th:text="${c.nome}"></td><td th:text="${c.descricao}"></td></tr><tr th:if="${#lists.isEmpty(categorias)}"><td colspan="3" class="empty">Nenhuma categoria.</td></tr></tbody></table></div></div>
+    </div></section>
+
+    <section id="localizacoes" class="module compact"><div class="section-head"><div><span class="index">03</span><h2>Localizações</h2></div></div><div class="split">
+      <form method="post" action="/app/localizacoes" novalidate class="card form-card"><h3>Nova localização</h3><div class="form-row"><label>Bloco<input name="bloco" required></label><label>Local<input name="local" required></label></div><label>Descrição<textarea name="descricao" rows="3"></textarea></label><button class="btn primary" type="submit">Cadastrar localização</button></form>
+      <div class="card table-card"><div class="table-scroll"><table><thead><tr><th>Bloco</th><th>Local</th><th>Descrição</th></tr></thead><tbody><tr th:each="l:${localizacoes}"><td class="mono" th:text="${l.bloco}"></td><td th:text="${l.local}"></td><td th:text="${l.descricao}"></td></tr><tr th:if="${#lists.isEmpty(localizacoes)}"><td colspan="3" class="empty">Nenhuma localização.</td></tr></tbody></table></div></div>
+    </div></section>
+
+    <section id="movimentacoes" class="module"><div class="section-head"><div><span class="index">04</span><h2>Movimentações</h2><p>Transfira um equipamento e preserve a origem no histórico.</p></div></div><div class="split">
+      <form method="post" action="/app/movimentacoes" novalidate class="card form-card"><h3>Registrar transferência</h3><label>Equipamento<select name="equipamentoId" required><option value="">Selecione</option><option th:each="e:${equipamentos}" th:if="${e.estado.name()!='BAIXADO'}" th:value="${e.id}" th:text="${e.numeroPatrimonio+' · '+e.identificacao}"></option></select></label><label>Destino<select name="localizacaoDestinoId" required><option value="">Selecione</option><option th:each="l:${localizacoes}" th:value="${l.id}" th:text="${l.bloco+' · '+l.local}"></option></select></label><label>Observação<textarea name="observacao" rows="3"></textarea></label><button class="btn primary" type="submit">Registrar movimentação</button></form>
+      <div class="card table-card"><div class="table-scroll"><table><thead><tr><th>Data</th><th>Equipamento</th><th>Origem</th><th>Destino</th></tr></thead><tbody><tr th:each="m:${movimentacoes}"><td class="mono" th:text="${#temporals.format(m.dataHora,'dd/MM/yyyy HH:mm')}"></td><td th:text="${m.equipamento.numeroPatrimonio}"></td><td th:text="${m.localizacaoOrigem.bloco+' · '+m.localizacaoOrigem.local}"></td><td th:text="${m.localizacaoDestino.bloco+' · '+m.localizacaoDestino.local}"></td></tr><tr th:if="${#lists.isEmpty(movimentacoes)}"><td colspan="4" class="empty">Nenhuma movimentação registrada.</td></tr></tbody></table></div></div>
+    </div></section>
+
+    <section id="manutencoes" class="module"><div class="section-head"><div><span class="index">05</span><h2>Manutenções</h2></div></div><div class="split">
+      <form method="post" action="/app/manutencoes" novalidate class="card form-card"><h3>Nova manutenção</h3><label>Equipamento<select name="equipamentoId" required><option value="">Selecione</option><option th:each="e:${equipamentos}" th:if="${e.estado.name()!='BAIXADO'}" th:value="${e.id}" th:text="${e.numeroPatrimonio+' · '+e.identificacao}"></option></select></label><div class="form-row"><label>Tipo<select name="tipo" required><option th:each="t:${tiposManutencao}" th:value="${t}" th:text="${t}"></option></select></label><label>Data de início<input type="date" name="dataInicio"></label></div><label>Descrição<textarea name="descricao" required rows="3"></textarea></label><label>Observação<textarea name="observacao" rows="2"></textarea></label><button class="btn primary" type="submit">Registrar manutenção</button></form>
+      <div class="card table-card"><div class="table-scroll"><table><thead><tr><th>Equipamento</th><th>Tipo</th><th>Início</th><th>Status</th><th>Ação</th></tr></thead><tbody><tr th:each="m:${manutencoes}"><td th:text="${m.equipamento.numeroPatrimonio}"></td><td th:text="${m.tipo}"></td><td class="mono" th:text="${#temporals.format(m.dataInicio,'dd/MM/yyyy')}"></td><td><span class="badge warning" th:text="${m.status}"></span></td><td><form novalidate th:if="${m.status.name()=='ABERTA'}" method="post" th:action="@{'/app/manutencoes/'+${m.id}+'/concluir'}"><button class="btn small" type="submit">Concluir</button></form></td></tr><tr th:if="${#lists.isEmpty(manutencoes)}"><td colspan="5" class="empty">Nenhuma manutenção.</td></tr></tbody></table></div></div>
+    </div></section>
+
+    <section id="baixas" class="module"><div class="section-head"><div><span class="index">06</span><h2>Baixas</h2><p>Retire um ativo de operação sem apagar seu histórico.</p></div></div><div class="split">
+      <form method="post" action="/app/baixas" novalidate class="card form-card danger-card"><h3>Registrar baixa</h3><label>Equipamento<select name="equipamentoId" required><option value="">Selecione</option><option th:each="e:${equipamentos}" th:if="${e.estado.name()!='BAIXADO'}" th:value="${e.id}" th:text="${e.numeroPatrimonio+' · '+e.identificacao}"></option></select></label><label>Data<input type="date" name="data"></label><label>Motivo<textarea name="motivo" required rows="3"></textarea></label><label>Observação<textarea name="observacao" rows="2"></textarea></label><button class="btn danger-btn" type="submit">Registrar baixa</button></form>
+      <div class="card table-card"><div class="table-scroll"><table><thead><tr><th>Data</th><th>Patrimônio</th><th>Equipamento</th><th>Motivo</th></tr></thead><tbody><tr th:each="b:${baixas}"><td class="mono" th:text="${#temporals.format(b.data,'dd/MM/yyyy')}"></td><td class="mono" th:text="${b.equipamento.numeroPatrimonio}"></td><td th:text="${b.equipamento.identificacao}"></td><td th:text="${b.motivo}"></td></tr><tr th:if="${#lists.isEmpty(baixas)}"><td colspan="4" class="empty">Nenhuma baixa registrada.</td></tr></tbody></table></div></div>
+    </div></section>
+    <footer>Gestão de Inventário · Projeto POO II · <span class="mono">Spring Boot / JDBC</span></footer>
+  </main>
+</div>
+</body></html>

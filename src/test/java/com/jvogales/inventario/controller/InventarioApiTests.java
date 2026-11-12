@@ -138,6 +138,62 @@ class InventarioApiTests {
                 .andExpect(status().isOk()).andExpect(content().json("[]"));
     }
 
+    @Test
+    void registraMovimentacaoManutencaoEBaixaPreservandoHistorico() throws Exception {
+        long categoria = criar("/categorias", Map.of("nome", "Operacional"));
+        long origem = criar("/localizacoes", Map.of("bloco", "A", "local", "Sala 1"));
+        long destino = criar("/localizacoes", Map.of("bloco", "B", "local", "Sala 2"));
+        long equipamento = criar("/equipamentos", equipamento(categoria, origem));
+
+        mvc.perform(post("/movimentacoes").contentType(MediaType.APPLICATION_JSON)
+                        .content(mapper.writeValueAsString(Map.of(
+                                "equipamentoId", equipamento,
+                                "localizacaoDestinoId", destino,
+                                "observacao", "Transferência de setor"))))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.localizacaoOrigem.id").value(origem))
+                .andExpect(jsonPath("$.localizacaoDestino.id").value(destino));
+        mvc.perform(get("/equipamentos/{id}", equipamento))
+                .andExpect(jsonPath("$.localizacaoAtual.id").value(destino));
+
+        var manutencao = mvc.perform(post("/manutencoes").contentType(MediaType.APPLICATION_JSON)
+                        .content(mapper.writeValueAsString(Map.of(
+                                "equipamentoId", equipamento,
+                                "tipo", "PREVENTIVA",
+                                "descricao", "Limpeza e revisão"))))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.status").value("ABERTA"))
+                .andReturn().getResponse();
+        long manutencaoId = mapper.readTree(manutencao.getContentAsString()).get("id").asLong();
+        mvc.perform(get("/equipamentos/{id}", equipamento))
+                .andExpect(jsonPath("$.estado").value("EM_MANUTENCAO"));
+        mvc.perform(put("/manutencoes/{id}/concluir", manutencaoId))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.status").value("CONCLUIDA"));
+
+        mvc.perform(post("/baixas").contentType(MediaType.APPLICATION_JSON)
+                        .content(mapper.writeValueAsString(Map.of(
+                                "equipamentoId", equipamento,
+                                "motivo", "Fim da vida útil"))))
+                .andExpect(status().isCreated());
+        mvc.perform(get("/equipamentos/{id}", equipamento))
+                .andExpect(jsonPath("$.estado").value("BAIXADO"));
+        mvc.perform(get("/movimentacoes").param("equipamentoId", String.valueOf(equipamento)))
+                .andExpect(jsonPath("$.length()").value(1));
+        mvc.perform(post("/movimentacoes").contentType(MediaType.APPLICATION_JSON)
+                        .content(mapper.writeValueAsString(Map.of(
+                                "equipamentoId", equipamento,
+                                "localizacaoDestinoId", origem))))
+                .andExpect(status().isConflict());
+    }
+
+    @Test
+    void renderizaPainelWeb() throws Exception {
+        mvc.perform(get("/app"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("painel"))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("Gestão de Inventário")));
+    }
+
     private long criar(String rota, Map<String, ?> dados) throws Exception {
         var resposta = mvc.perform(post(rota).contentType(MediaType.APPLICATION_JSON)
                         .content(mapper.writeValueAsString(dados)))

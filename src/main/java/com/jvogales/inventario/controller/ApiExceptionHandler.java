@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
+import org.springframework.dao.DataIntegrityViolationException;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -23,6 +24,13 @@ public class ApiExceptionHandler extends ResponseEntityExceptionHandler {
     public ResponseEntity<ProblemDetail> tratarRegra(ResponseStatusException exception) {
         var erro = ProblemDetail.forStatusAndDetail(exception.getStatusCode(), exception.getReason());
         return ResponseEntity.status(exception.getStatusCode()).body(erro);
+    }
+
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<ProblemDetail> tratarIntegridade(DataIntegrityViolationException exception) {
+        var erro = ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT,
+                "Dados duplicados ou vinculados impedem esta operação.");
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(erro);
     }
 
     @Override

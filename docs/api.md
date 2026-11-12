@@ -1,10 +1,10 @@
-# API REST — CRUD em memória
+# API REST — Gestão de Inventário
 
 Execute `./mvnw spring-boot:run` (Windows: `.\mvnw.cmd spring-boot:run`).
-No Postman, use `http://localhost:8080` como base e selecione **Body → raw → JSON**
+No Postman, use `http://localhost:8081` como base e selecione **Body → raw → JSON**
 para POST e PUT. Envie `Content-Type: application/json`.
 
-Os dados ficam em memória e são perdidos ao reiniciar. IDs são gerados no servidor.
+Os dados ficam persistidos no PostgreSQL. IDs são gerados no servidor.
 Não envie um ID para escolher o identificador de um cadastro.
 
 ## Rotas e respostas
@@ -94,6 +94,15 @@ Todos os parâmetros são opcionais e podem ser combinados. A pesquisa procura
 trechos do patrimônio ou identificação sem diferenciar maiúsculas e minúsculas.
 Os estados iniciais são `DISPONIVEL`, `EM_USO`, `EM_MANUTENCAO` e `BAIXADO`.
 
+### 6. Movimentação, manutenção e baixa
+
+- `POST /movimentacoes`: `equipamentoId`, `localizacaoDestinoId` e `observacao`.
+- `GET /movimentacoes?equipamentoId=1`: histórico do equipamento.
+- `POST /manutencoes`: `equipamentoId`, `tipo`, `descricao` e campos opcionais.
+- `PUT /manutencoes/{id}/concluir`: encerra a manutenção.
+- `POST /baixas`: `equipamentoId`, `motivo`, `data` e `observacao`.
+- `GET /baixas`: histórico de baixas.
+
 ## Erros
 
 - `400 Bad Request`: campos obrigatórios ausentes, IDs de referência não positivos,
@@ -109,18 +118,15 @@ espaços nas extremidades; essa é a convenção adotada neste CRUD inicial.
 ## Arquitetura e limites desta etapa
 
 ```text
-Requisição HTTP → Controller → Service → Repository em memória
+Requisição HTTP → Controller → Service → Repository JDBC → PostgreSQL
 ```
 
 `@Data` do Lombok gera getters, setters, `equals`, `hashCode` e `toString` na
 compilação. `@NoArgsConstructor` e `@AllArgsConstructor` geram os construtores.
 `@RequiredArgsConstructor` gera a injeção por construtor dos campos `final`.
 Os controllers recebem HTTP e usam `ResponseEntity`; os services aplicam as
-regras; os repositories armazenam os objetos.
+regras; os repositories executam SQL com `JdbcTemplate`.
 
-O DELETE é parte do exercício de CRUD e **não implementa a baixa patrimonial**
-do RF22. A baixa exige registro e preservação do histórico. Movimentação,
-manutenção e suas regras, incluindo histórico de alterações de localização e
-transições de estado, ainda não estão implementadas. O PUT atual edita os dados
-básicos e não substitui essas operações. A persistência futura continuará sendo
-PostgreSQL com JDBC, conforme os requisitos.
+O DELETE permanece disponível no CRUD básico. A baixa patrimonial do RF22 possui
+rota própria (`/baixas`), preserva o histórico e impede novas movimentações e
+manutenções. Movimentações e manutenções também possuem rotas próprias.

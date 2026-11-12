@@ -49,10 +49,7 @@ public class EquipamentoService {
 
     private Equipamento salvar(Long id, EquipamentoRequest dados) {
         String patrimonio = dados.getNumeroPatrimonio().strip();
-        boolean duplicado = repository.listar().stream()
-                .anyMatch(e -> !Objects.equals(e.getId(), id)
-                        && e.getNumeroPatrimonio().equalsIgnoreCase(patrimonio));
-        if (duplicado) {
+        if (repository.existePatrimonio(patrimonio, id)) {
             throw new ResponseStatusException(HttpStatus.CONFLICT,
                     "Número de patrimônio já cadastrado.");
         }

@@ -39,18 +39,9 @@ public class CategoriaRepository {
     public Categoria salvar(Categoria categoria) {
         try {
             if (categoria.getId() == null) {
-                String sql = """
-                        INSERT INTO categoria (nome, descricao)
-                        VALUES (?, ?)
-                        RETURNING id
-                        """;
-
-                Long id = jdbcTemplate.queryForObject(
-                        sql,
-                        Long.class,
-                        categoria.getNome(),
-                        categoria.getDescricao()
-                );
+                Long id = JdbcKeys.insert(jdbcTemplate,
+                        "INSERT INTO categoria (nome, descricao) VALUES (?, ?)",
+                        categoria.getNome(), categoria.getDescricao());
 
                 categoria.setId(id);
             } else {
@@ -93,9 +84,7 @@ public class CategoriaRepository {
 
         while (causa != null) {
             if (causa instanceof java.sql.SQLException erro) {
-                if ("23505".equals(erro.getSQLState())
-                        && erro.getMessage() != null
-                        && erro.getMessage().contains("uq_categoria_nome_normalizado")) {
+                if ("23505".equals(erro.getSQLState())) {
                     return true;
                 }
             }

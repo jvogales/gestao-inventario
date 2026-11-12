@@ -1,40 +1,42 @@
 package com.jvogales.inventario.repository;
 
 import com.jvogales.inventario.model.entity.Localizacao;
+import lombok.RequiredArgsConstructor;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
 
-import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicLong;
 
-/** Armazenamento temporário: os dados são perdidos ao reiniciar a aplicação. */
 @Repository
+@RequiredArgsConstructor
 public class LocalizacaoRepository {
-
-    private final ConcurrentHashMap<Long, Localizacao> dados = new ConcurrentHashMap<>();
-    private final AtomicLong sequencia = new AtomicLong();
+    private final JdbcTemplate jdbcTemplate;
+    private final RowMapper<Localizacao> mapper = (rs, row) -> new Localizacao(
+            rs.getLong("id"), rs.getString("bloco"), rs.getString("local"), rs.getString("descricao"));
 
     public List<Localizacao> listar() {
-        return dados.values().stream()
-                .sorted(Comparator.comparing(Localizacao::getId))
-                .toList();
+        return jdbcTemplate.query("SELECT id, bloco, local, descricao FROM localizacao ORDER BY bloco, local", mapper);
     }
 
     public Optional<Localizacao> buscarPorId(Long id) {
-        return Optional.ofNullable(dados.get(id));
+        return jdbcTemplate.query("SELECT id, bloco, local, descricao FROM localizacao WHERE id = ?", mapper, id)
+                .stream().findFirst();
     }
 
-    public Localizacao salvar(Localizacao entidade) {
-        if (entidade.getId() == null) {
-            entidade.setId(sequencia.incrementAndGet());
+    public Localizacao salvar(Localizacao localizacao) {
+        if (localizacao.getId() == null) {
+            Long id = JdbcKeys.insert(jdbcTemplate,
+                    "INSERT INTO localizacao (bloco, local, descricao) VALUES (?, ?, ?)",
+                    localizacao.getBloco(), localizacao.getLocal(), localizacao.getDescricao());
+            localizacao.setId(id);
+        } else {
+            jdbcTemplate.update("UPDATE localizacao SET bloco = ?, local = ?, descricao = ? WHERE id = ?",
+                    localizacao.getBloco(), localizacao.getLocal(), localizacao.getDescricao(), localizacao.getId());
         }
-        dados.put(entidade.getId(), entidade);
-        return entidade;
+        return localizacao;
     }
 
-    public void excluir(Long id) {
-        dados.remove(id);
-    }
+    public void excluir(Long id) { jdbcTemplate.update("DELETE FROM localizacao WHERE id = ?", id); }
 }

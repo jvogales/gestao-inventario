@@ -37,22 +37,12 @@ public class CategoriaService {
         existente.setNome(dados.getNome());
         existente.setDescricao(dados.getDescricao());
 
-        var atualizada = repository.salvar(existente);
-
-        // Sincronização temporária enquanto EquipamentoRepository
-        // ainda utiliza armazenamento em memória.
-        equipamentoRepository.listar().stream()
-            .filter(e -> e.getCategoria().getId().equals(id))
-            .forEach(e -> e.setCategoria(atualizada));
-
-        return atualizada;
+        return repository.salvar(existente);
     }
 
     public void excluir(Long id) {
         buscarPorId(id);
-        boolean emUso = equipamentoRepository.listar().stream()
-                .anyMatch(equipamento -> equipamento.getCategoria().getId().equals(id));
-        if (emUso) {
+        if (equipamentoRepository.existePorCategoria(id)) {
             throw new ResponseStatusException(HttpStatus.CONFLICT,
                     "Categoria vinculada a equipamento não pode ser excluída.");
         }

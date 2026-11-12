@@ -1,7 +1,5 @@
 # Documentação do projeto
 
-- [Ponto de retomada: integração local com PostgreSQL](retomada.md)
-
 ## Planejamento
 
 - [Arquitetura inicial e decisões técnicas](arquitetura.md)
@@ -9,7 +7,6 @@
 
 - [Definição inicial do projeto (PDF)](definicao-projeto.pdf)
 - [Requisitos funcionais e não funcionais](requisitos/requisitos.md)
-- [Guia de desenvolvimento](desenvolvimento.md)
 - [API REST e exemplos para Postman](api.md)
 - [Modelo de domínio e decisões de implementação](modelo-dominio.md)
 
